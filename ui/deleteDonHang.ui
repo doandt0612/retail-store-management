@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>350</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* 1. Tổng thể Cửa sổ Dialog */
+QDialog {
+    background-color: #ffffff;
+    border-radius: 12px; /* Bo góc mềm mại cho cửa sổ */
+}
+
+/* 2. Tiêu đề xác nhận (Are you sure?) */
+QLabel#lblCanhBao {
+   font-size: 13px;
+    font-weight: 400; /* Regular cấp độ 4 [cite: 64] */
+    color: #6b7280;   /* Màu xám nhạt để làm dịu thông tin phụ */
+}
+
+/* 4. Nút XÓA (Hành động chính - Màu đỏ Warning) */
+QPushButton#btnXoa {
+    background-color: #ef4444; /* Màu đỏ cảnh báo từ Figma */
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 12px 24px;
+    min-width: 100px;
+}
+
+QPushButton#btnXoa:hover {
+    background-color: #dc2626; /* Đỏ đậm hơn khi di chuột qua */
+}
+
+/* 5. Nút HỦY (Hành động phụ - Màu trung tính) */
+QPushButton#btnHuy {
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db; /* Viền xám mảnh [cite: 81] */
+    border-radius: 8px;
+    padding: 12px 24px;
+    min-width: 100px;
+}
+
+QPushButton#btnHuy:hover {
+    background-color: #f3f4f6; /* Xám cực nhạt khi hover */
+}
+</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="lblCanhBao">
+     <property name="text">
+      <string>Bạn có chắc chắn muốn xóa đơn hàng này? Thao tác này không thể hoàn tác. Đơn hàng ở trạng thái 'Đã thanh toán' không thể xóa.</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="btnXoa">
+       <property name="text">
+        <string>Xóa</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnHuy">
+       <property name="text">
+        <string>Hủy</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

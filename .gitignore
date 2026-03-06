@@ -1,0 +1,13 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Môi trường ảo
+venv/
+env/
+
+# BẢO MẬT: Không push thông tin database
+.env
+
+# IDE
+.vscode/

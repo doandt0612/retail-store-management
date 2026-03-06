@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* 1. Tổng thể Cửa sổ Dialog */
+QDialog {
+    background-color: #ffffff;
+    font-family: &quot;Inter&quot;, &quot;Segoe UI&quot;, sans-serif;
+}
+
+/* 2. Tiêu đề chính (Thêm nhà cung cấp) */
+QLabel#lblTitleThemNCC {
+    font-size: 20px;
+    font-weight: 700; /* Bold */
+    color: #111827;   /* Đen tuyền */
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* 3. Nhãn thuộc tính trong Form (Tên, SĐT, Địa chỉ) */
+QLabel#lblTenNCC, QLabel#lblSDTNCC, QLabel#lblDiaChiNCC {
+    font-size: 13px;
+    font-weight: 600; /* Semi-bold */
+    color: #4b5563;   /* Xám đậm */
+}
+
+/* 4. Các ô nhập liệu (Inputs) */
+QLineEdit {
+    background-color: #f9fafb; /* Nền xám nhạt */
+    border: 1px solid #e5e7eb; /* Viền mảnh */
+    border-radius: 8px;        /* Bo góc 8px */
+    padding: 10px 12px;
+    color: #111827;
+    min-height: 20px;
+}
+
+/* Hiệu ứng khi người dùng click vào ô nhập liệu */
+QLineEdit:focus {
+    border: 2px solid #2563eb; /* Viền xanh dương thương hiệu */
+    background-color: #ffffff;
+}
+
+/* 5. Nút bấm chức năng (Footer Buttons) */
+
+/* Nút LƯU (Màu xanh dương) */
+QPushButton#btnLuu {
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 12px 24px;
+    min-width: 120px;
+}
+
+QPushButton#btnLuu:hover {
+    background-color: #1d4ed8; /* Màu đậm hơn khi hover */
+}
+
+/* Nút HỦY (Trắng viền xám) */
+QPushButton#btnHuy {
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px 24px;
+}
+
+QPushButton#btnHuy:hover {
+    background-color: #f3f4f6;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="lblTitleThemNCC">
+     <property name="text">
+      <string>Thêm nhà cung cấp</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="lblTenNCC">
+       <property name="text">
+        <string>Tên</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="lblSDTNCC">
+       <property name="text">
+        <string>SĐT</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="lblDiaChiNCC">
+       <property name="text">
+        <string>Địa chỉ</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="txtTenNCC">
+       <property name="placeholderText">
+        <string>Nhập tên nhà cung cấp</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="txtDiaChiNCC">
+       <property name="placeholderText">
+        <string>Nhập địa chỉ</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="txtSDTNCC">
+       <property name="placeholderText">
+        <string>Nhập số điện thoại</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="btnLuu">
+       <property name="text">
+        <string>Lưu thay đổi</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnHuy">
+       <property name="text">
+        <string>Hủy</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
