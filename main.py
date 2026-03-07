@@ -51,10 +51,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
     def connect_button(self):
-        # Các nút chuyển trang
-        self.btnNhaCungCap.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(5))
-        self.btnKhachHang.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(6))
-
 
         # Kết nối nút với hàm xử lý riêng (để vừa chuyển trang vừa load data)
         self.btnTongQuan.clicked.connect(self.mo_trang_tong_quan)
