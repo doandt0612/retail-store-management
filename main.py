@@ -39,7 +39,12 @@ class MainWindow(QtWidgets.QMainWindow):
                                     self.btnSau_3,
                                     self.lblHienThiHD
                                 )
-        self.order_manager = OrderManager(self.tblDonHang)
+        self.order_manager = OrderManager(
+                                    self.tblDonHang, 
+                                    self.btnTruoc, 
+                                    self.btnSau, 
+                                    self.lblHienThiDH
+                                )
         self.product_manager = ProductManager(
                                     self.tblDanhSachSP,  # Bảng danh sách
                                     self.btnTruoc_2,     # Nút Trước
