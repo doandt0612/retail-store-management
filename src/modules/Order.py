@@ -236,7 +236,7 @@ class ViewOrder(QtWidgets.QDialog):
         cursor.execute("SELECT O.ORDER_ID, C.CUSTOMER_NAME FROM ORDERS O JOIN CUSTOMERS C ON O.CUSTOMER_ID = C.CUSTOMER_ID WHERE O.ORDER_ID = ?", (self.order_id,))
         header = cursor.fetchone()
         if header: 
-            self.lblSoMon.setText(f"Đơn hàng: {header[0]} ({total_q} món)")
+            self.lblHienThiMaDon.setText(f"Đơn hàng: {header[0]}")
             self.lblHienThiKH.setText(header[1])
             
         # 3. Đổ dữ liệu vào bảng

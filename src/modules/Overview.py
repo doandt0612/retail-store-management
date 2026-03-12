@@ -43,7 +43,7 @@ class OrderDetails(QtWidgets.QDialog):
         header_data = cursor.fetchone()
         
         if header_data:
-            self.lblMaDon.setText(f"Đơn hàng: {header_data[0]}")
+            self.lblHienThiMaDon.setText(f"Đơn hàng: {header_data[0]}")
             # Giả định ID Label là lblHienThiKH giống bên Order.py
             self.lblHienThiKH.setText(header_data[1]) 
 
