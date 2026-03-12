@@ -182,15 +182,20 @@ class CustomerManager:
         self.init_ui_style()
 
     def init_ui_style(self):
-        """Cấu hình bảng chuyên nghiệp và đồng bộ"""
+        """Cấu hình bảng chuyên nghiệp phù hợp với cấu trúc 7 cột mới"""
         self.table.verticalHeader().setVisible(False)
         header = self.table.horizontalHeader()
         
+        # Cấu hình tự động co giãn cho các cột thông tin
         header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents) 
         
-        header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeMode.Fixed)
-        self.table.setColumnWidth(4, 160) 
+        # Cột 0 (Mã KH) và Cột 1 (Mã tài khoản) co theo nội dung
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        
+        # Cột 6 (Thao tác) đặt độ rộng cố định
+        header.setSectionResizeMode(6, QtWidgets.QHeaderView.ResizeMode.Fixed)
+        self.table.setColumnWidth(6, 160) 
 
         self.table.setStyleSheet("""
             QTableWidget { gridline-color: #e5e7eb; selection-background-color: #dbeafe; selection-color: #1e40af; alternate-background-color: #f9fafb; }
@@ -200,13 +205,14 @@ class CustomerManager:
         self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
 
     def load_data(self):
-        """Nạp danh sách khách hàng từ Database"""
+        """Nạp danh sách khách hàng từ Database khớp với cấu trúc image_1d1b89.png"""
         db = DatabaseManager()
         conn = db.get_connection()
         if not conn: return
         
         cursor = conn.cursor()
-        cursor.execute("SELECT CUSTOMER_ID, CUSTOMER_NAME, CUSTOMER_GENDER, CUSTOMER_PHONE FROM CUSTOMERS") #
+        # Lấy đầy đủ các trường: Mã KH, Mã TK, Tên, GT, SĐT, Email
+        cursor.execute("SELECT CUSTOMER_ID, ACCOUNT_ID, CUSTOMER_NAME, CUSTOMER_GENDER, CUSTOMER_PHONE, CUSTOMER_EMAIL FROM CUSTOMERS")
         rows = cursor.fetchall()
         
         self.table.setRowCount(0)
@@ -214,14 +220,32 @@ class CustomerManager:
         for row_idx, row_data in enumerate(rows):
             self.table.insertRow(row_idx)
             
+            # Cột 0: Mã KH
             self.table.setItem(row_idx, 0, QtWidgets.QTableWidgetItem(str(row_data[0])))
-            self.table.setItem(row_idx, 1, QtWidgets.QTableWidgetItem(row_data[1]))
+            # Cột 1: Mã tài khoản
+            self.table.setItem(row_idx, 1, QtWidgets.QTableWidgetItem(str(row_data[1])))
+            # Cột 2: Tên KH
+            self.table.setItem(row_idx, 2, QtWidgets.QTableWidgetItem(str(row_data[2])))
             
-            gioi_tinh = row_data[2] if row_data[2] else "Không xác định"
-            self.table.setItem(row_idx, 2, QtWidgets.QTableWidgetItem(gioi_tinh))
-            self.table.setItem(row_idx, 3, QtWidgets.QTableWidgetItem(row_data[3]))
+            # Cột 3: Giới tính
+            gioi_tinh = row_data[3] if row_data[3] else "N/A"
+            self.table.setItem(row_idx, 3, QtWidgets.QTableWidgetItem(gioi_tinh))
             
-            item_dict = {"id": row_data[0], "ten": row_data[1], "gt": gioi_tinh, "sdt": row_data[3]}
+            # Cột 4: SĐT
+            self.table.setItem(row_idx, 4, QtWidgets.QTableWidgetItem(str(row_data[4])))
+            # Cột 5: Email
+            self.table.setItem(row_idx, 5, QtWidgets.QTableWidgetItem(str(row_data[5])))
+            
+            # Lưu lại thông tin cần thiết để truyền vào Dialog Sửa/Xóa
+            item_dict = {
+                "id": row_data[0], 
+                "ten": row_data[2], 
+                "gt": gioi_tinh, 
+                "sdt": row_data[4],
+                "email": row_data[5]
+            }
+            
+            # Cột 6: Thao tác (Nút bấm)
             self.add_action_buttons(row_idx, item_dict)
             
         conn.close()
@@ -244,7 +268,9 @@ class CustomerManager:
 
         layout.addWidget(btn_edit)
         layout.addWidget(btn_delete)
-        self.table.setCellWidget(row, 4, container)
+        
+        # Đưa vào cột cuối cùng (cột 6) theo thiết kế
+        self.table.setCellWidget(row, 6, container)
 
     def open_add(self):
         if AddCustomer().exec(): 
