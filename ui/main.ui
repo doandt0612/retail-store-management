@@ -296,7 +296,7 @@ QWidget {
 }</string>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>7</number>
          </property>
          <widget class="QWidget" name="pageTongQuan">
           <property name="styleSheet">
@@ -1048,6 +1048,9 @@ QComboBox QAbstractItemView {
                 <item>
                  <widget class="QLineEdit" name="txtTimSP_2">
                   <property name="text">
+                   <string/>
+                  </property>
+                  <property name="placeholderText">
                    <string>Tìm kiếm sản phẩm...</string>
                   </property>
                  </widget>
