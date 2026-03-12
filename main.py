@@ -5,7 +5,6 @@ from src.modules.Category import DanhMucManager
 from src.modules.Overview import OverviewManager
 from src.modules.Order import OrderManager
 from src.modules.Product import ProductManager
-from src.modules.Stock import InventoryManager
 from src.modules.Customer import CustomerManager
 from src.modules.Supplier import SupplierManager
 
@@ -39,7 +38,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                     self.cbDanhMuc,      # Truyền ComboBox Danh mục
                                     self.cbNhaCungCap    # Truyền ComboBox Nhà cung cấp
                                 )
-        self.inventory_manager = InventoryManager(self.tblKhoHang)
+
         self.supplier_manager = SupplierManager(self.tblDanhSachNCC)
         self.customer_manager = CustomerManager(self.tblDanhSachKH)
 
@@ -55,11 +54,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # Kết nối nút với hàm xử lý riêng (để vừa chuyển trang vừa load data)
         self.btnTongQuan.clicked.connect(self.mo_trang_tong_quan)
         self.btnDonHang.clicked.connect(self.mo_trang_don_hang)
+        self.btnHoaDon.clicked.connect(self.mo_trang_hoa_don)
         self.btnSanPham.clicked.connect(self.mo_trang_san_pham)
         self.btnDanhMuc.clicked.connect(self.mo_trang_danh_muc)
-        self.btnKhoHang.clicked.connect(self.mo_trang_kho_hang)
         self.btnNhaCungCap.clicked.connect(self.mo_trang_nha_cung_cap)
         self.btnKhachHang.clicked.connect(self.mo_trang_khach_hang)
+        self.btnTaiKhoan.clicked.connect(self.mo_trang_tai_khoan)
 
 
         # Kết nối nút "Thêm danh mục" trên giao diện chính với Dialog Thêm
@@ -78,19 +78,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stackedWidget.setCurrentIndex(1) # Trang Đơn hàng
         self.order_manager.load_data()
 
+    def mo_trang_hoa_don(self):
+        self.stackedWidget.setCurrentIndex(2)
+
     def mo_trang_san_pham(self):
         # Chuyển đến index của trang Sản phẩm và load dữ liệu
-        self.stackedWidget.setCurrentIndex(2)       
+        self.stackedWidget.setCurrentIndex(3)       
         self.product_manager.load_data()
 
     def mo_trang_danh_muc(self):
         # Hàm vừa chuyển trang vừa yêu cầu manager nạp dữ liệu mới nhất
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(4)
         self.category_manager.load_data()
-
-    def mo_trang_kho_hang(self):
-        self.stackedWidget.setCurrentIndex(4) # Trang Kho hàng là index 4
-        self.inventory_manager.load_data()
 
     def mo_trang_nha_cung_cap(self):
         self.stackedWidget.setCurrentIndex(5) # Trang Nhà cung cấp  là index 5
@@ -99,6 +98,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def mo_trang_khach_hang(self):
         self.stackedWidget.setCurrentIndex(6) # Trang Khách hàng (index 6)
         self.customer_manager.load_data()
+
+    def mo_trang_tai_khoan(self):
+        self.stackedWidget.setCurrentIndex(7)
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
