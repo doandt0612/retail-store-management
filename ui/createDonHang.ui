@@ -258,14 +258,14 @@ QLabel#lblHienThiSoTienTongCong { font-size: 26px; font-weight: 800; color: #256
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="lblKhachHang">
-            <property name="text">
-             <string>Khách hàng</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <layout class="QVBoxLayout" name="verticalLayout_8">
+            <item>
+             <widget class="QLabel" name="lblKhachHang">
+              <property name="text">
+               <string>Khách hàng</string>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QComboBox" name="cbKhachHang"/>
             </item>

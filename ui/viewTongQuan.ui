@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>650</width>
-    <height>364</height>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@ QDialog {
 }
 
 /* 2. Tiêu đề Mã đơn hàng (Nổi bật nhất) */
-QLabel#lblMaDon {
+QLabel#lblHienThiMaDon {
     font-size: 26px;
     font-weight: 800;
     color: #111827;
@@ -89,9 +89,9 @@ QHeaderView::section {
     <number>15</number>
    </property>
    <item>
-    <widget class="QLabel" name="lblMaDon">
+    <widget class="QLabel" name="lblHienThiMaDon">
      <property name="text">
-      <string>Mã đơn</string>
+      <string>Mã đơn hàng</string>
      </property>
     </widget>
    </item>
@@ -175,13 +175,6 @@ QHeaderView::section {
             </item>
             <item>
              <widget class="QLabel" name="lblHienThiKH">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="lblHienThiNV">
               <property name="text">
                <string/>
               </property>
