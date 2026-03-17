@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>435</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* 1. Tổng thể Cửa sổ [cite: 492] */
+QDialog {
+    background-color: #ffffff;
+    font-family: &quot;Inter&quot;, &quot;Segoe UI&quot;, sans-serif;
+}
+
+/* 2. Tiêu đề chính (Thêm nhân viên) [cite: 493-495] */
+QLabel#lblTitleThemNV {
+    font-size: 22px;
+    font-weight: 800;
+    color: #111827;
+    padding-bottom: 5px;
+}
+
+/* 3. Nhãn thuộc tính trong Form [cite: 496-497] */
+QLabel#lblTenNV, QLabel#lblLoaiNV, QLabel#lblSDTNV, 
+QLabel#lblEmailNV, QLabel#lblNgayBatDau {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+/* 4. Ô nhập liệu, ComboBox và DateEdit [cite: 498-501, 515] */
+QLineEdit, QComboBox, QDateEdit {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+}
+
+/* Hiệu ứng khi focus [cite: 502-503] */
+QLineEdit:focus, QComboBox:focus, QDateEdit:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* 5. Tùy chỉnh riêng cho DateEdit và ComboBox [cite: 508-509] */
+QComboBox::drop-down, QDateEdit::drop-down {
+    border: none;
+    width: 30px;
+}
+
+QComboBox::down-arrow, QDateEdit::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #6b7280;
+    margin-right: 10px;
+}
+
+/* 6. Nút bấm chức năng (Footer) [cite: 504-507, 516] */
+QPushButton#btnLuu {
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 10px 24px;
+}
+
+QPushButton#btnLuu:hover {
+    background-color: #1d4ed8;
+}
+
+QPushButton#btnHuy {
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 24px;
+}
+
+QPushButton#btnHuy:hover {
+    background-color: #f3f4f6;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="lblTitleThemNV">
+     <property name="text">
+      <string>Thêm nhân viên</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="lblTenNV">
+       <property name="text">
+        <string>Tên</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="txtTenNV">
+       <property name="placeholderText">
+        <string>Nhập tên nhân viên</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="lblLoaiNV">
+       <property name="text">
+        <string>Loại</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="cbLoaiNV">
+       <item>
+        <property name="text">
+         <string>Full-time</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Part-Time</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="lblSDTNV">
+       <property name="text">
+        <string>SĐT</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="txtSDTNV">
+       <property name="placeholderText">
+        <string>Nhập số điện thoại</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="lblEmailNV">
+       <property name="text">
+        <string>Email</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="txtEmailNV">
+       <property name="placeholderText">
+        <string>Nhập địa chỉ email</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="lblNgayBatDau">
+       <property name="text">
+        <string>Ngày bắt đầu</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QDateEdit" name="deNgayBatDau"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="btnLuu">
+       <property name="text">
+        <string>Lưu thay đổi</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnHuy">
+       <property name="text">
+        <string>Hủy</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

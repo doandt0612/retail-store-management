@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>450</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* 1. Tổng thể Cửa sổ Dialog  */
+QDialog {
+    background-color: #ffffff;
+    font-family: &quot;Inter&quot;, &quot;Segoe UI&quot;, sans-serif;
+}
+
+/* 2. Tiêu đề chính (Thêm sản phẩm)  */
+QLabel#lblTitleThemSP {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* 3. Nhãn thuộc tính trong Form [cite: 47, 48, 49] */
+QLabel#lblMaSP, QLabel#lblTenSP, QLabel#lblDanhMuc, QLabel#lblGia, 
+QLabel#lblNCC, QLabel#lblSoLuong {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+/* 4. Các ô nhập liệu (Inputs, ComboBox, SpinBox) [cite: 49, 50] */
+QLineEdit, QComboBox, QSpinBox {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+    min-height: 25px;
+}
+
+/* Hiệu ứng khi người dùng tương tác */
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* 5. Nút bấm chức năng [cite: 50, 51] */
+
+/* Nút LƯU (Primary Button) [cite: 51] */
+QPushButton#btnLuu {
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 12px 24px;
+    min-width: 120px;
+}
+
+QPushButton#btnLuu:hover {
+    background-color: #1d4ed8;
+}
+
+/* Nút HỦY (Secondary Button) [cite: 51] */
+QPushButton#btnHuy {
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px 24px;
+}
+
+QPushButton#btnHuy:hover {
+    background-color: #f3f4f6;
+}
+
+/* 6. Tùy chỉnh mũi tên cho ComboBox &amp; SpinBox */
+QComboBox::drop-down, QSpinBox::up-button, QSpinBox::down-button {
+    border: none;
+    background: transparent;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="lblTitleThemSP">
+     <property name="text">
+      <string>Thêm sản phẩm</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="1" column="0">
+      <widget class="QLabel" name="lblMaSP">
+       <property name="text">
+        <string>Mã sản phẩm</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="txtReadOnlyMaSP">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="lblTenSP">
+       <property name="text">
+        <string>Tên sản phẩm</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="txtTenSP"/>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="lblSoLuong">
+       <property name="text">
+        <string>Tồn kho</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QSpinBox" name="spnSoLuong"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="lblDanhMuc">
+       <property name="text">
+        <string>Danh mục</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="cbDanhMuc"/>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="lblGia">
+       <property name="text">
+        <string>Đơn giá</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="txtGia"/>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="lblNCC">
+       <property name="text">
+        <string>Nhà cung cấp</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QComboBox" name="cbNCC"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="btnLuu">
+       <property name="text">
+        <string>Lưu thay đổi</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnHuy">
+       <property name="text">
+        <string>Hủy</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

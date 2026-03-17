@@ -20,17 +20,29 @@ RETAIL_STORE_MANAGEMENT/
 │ │ └── QUANLYCUAHANG.sql 
 │ │
 │ └── modules/ 
-│ ├── Category.py 
-│ ├── Customer.py 
-│ ├── Order.py 
-│ ├── Overview.py 
-│ ├── Product.py 
-│ ├── Stock.py 
-│ └── Supplier.py 
+│  ├── Category.py 
+│  ├── Customer.py
+│  ├── Invoice.py
+│  ├── Order.py 
+│  ├── Overview.py 
+│  ├── Product.py 
+│  ├── Promotion.py 
+│  └── Supplier.py 
 │
 ├── ui/ 
-│ ├── main.ui
-│ └── ... # Các dialog UI khác
+│  ├── login.ui
+│  └── modules_ui/
+│     ├── DanhMuc/ ... # Các ui của module Danh Mục 
+│     ├── DonHang/ ... # Các ui của module Đơn Hàng 
+│     ├── KhachHnag/ ... # Các ui của module Khách Hàng
+│     ├── KhuyenMai/ ... # Các ui của module Khuyến Mãi
+│     ├── NhaCungCap/ ... # Các ui của module Nhà Cung Cấp 
+│     ├── NhanVien/ ... # Các ui của module Nhân Viên 
+│     ├── NhapHang/ ... # Các ui của module Nhập Hàng 
+│     ├── SanPham/ ... # Các ui của module Sản phẩm
+│  ├── NhanVienBanHang/ mainNVBH.ui
+│  ├── NhanVienKho/ mainNVK.ui
+│  ├── QuanLyCuHang/ main QLCH.ui
 │
 ├── .env 
 ├── .env.example 

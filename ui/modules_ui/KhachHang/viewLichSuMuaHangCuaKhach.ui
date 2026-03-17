@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>650</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* 1. Tổng thể Cửa sổ [cite: 318-319] */
+QDialog {
+    background-color: #f3f4f6; /* Nền xám nhạt làm nổi bật các Card trắng */
+    font-family: &quot;Inter&quot;, &quot;Segoe UI&quot;, sans-serif;
+}
+
+/* 2. Tiêu đề trang chính (Nổi bật nhất) [cite: 320-321] */
+QLabel#lblTitleLichSuMuaHang {
+    font-size: 26px;
+    font-weight: 800;
+    color: #111827;
+    padding: 10px 0px;
+}
+
+/* 3. Thẻ nội dung (Cards) [cite: 321-322] */
+QFrame#frame, QFrame#frame_2 {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+/* 4. Tiêu đề các khối con [cite: 322-323] */
+QLabel#lblThongTinCaNhan, QLabel#lblLichSuMuaHang {
+    font-size: 17px;
+    font-weight: 700;
+    color: #111827;
+    border: none;
+    background-color: transparent;
+}
+
+/* 5. Nhãn mô tả (Labels - Thuộc tính) [cite: 323-324] */
+QLabel#lblMaKH, QLabel#lblTenKH, QLabel#lblSDT {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563; /* Màu xám đậm chuyên nghiệp */
+}
+
+/* 6. Nhãn hiển thị giá trị (Values - Dữ liệu) [cite: 324-325] */
+QLabel#lblHienThiMaKH, QLabel#lblHienThiTenKH, QLabel#lblHienThiSDT {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    padding: 5px 0px;
+}
+
+/* 7. Bảng danh sách mua hàng [cite: 326-327] */
+QTableWidget#tblDanhSachMuaHang {
+    background-color: #ffffff;
+    border: none;
+    gridline-color: transparent; /* Xóa lưới cho sạch sẽ */
+    outline: none;
+}
+
+QHeaderView::section {
+    background-color: #ffffff;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #6b7280;
+    text-transform: uppercase; /* BUỘC IN HOA TIÊU ĐỀ CỘT */
+    font-size: 11px;
+}
+
+/* Hiệu ứng chọn dòng */
+QTableWidget#tblDanhSachMuaHang::item:selected {
+    background-color: #eff6ff;
+    color: #2563eb;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <widget class="QLabel" name="lblTitleLichSuMuaHang">
+     <property name="text">
+      <string>Lịch sử mua hàng của khách</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame_2">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="lblThongTinCaNhan">
+        <property name="text">
+         <string>Thông tin cá nhân</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="lblMaKH">
+          <property name="text">
+           <string>Mã KH</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblHienThiMaKH">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblTenKH">
+          <property name="text">
+           <string>Tên KH</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblHienThiTenKH">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblSDT">
+          <property name="text">
+           <string>SĐT</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblHienThiSDT">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QLabel" name="lblLichSuMuaHang">
+        <property name="text">
+         <string>Lịch sử mua hàng</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="tblDanhSachMuaHang">
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="showGrid">
+         <bool>false</bool>
+        </property>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>Mã đơn</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Ngày mua</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Tổng tiền</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Thao tác</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

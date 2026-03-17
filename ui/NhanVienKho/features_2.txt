@@ -1,0 +1,5 @@
+MODULE NHÂN VIÊN KHO CÓ THỂ TRUY CẬP
+- Danh mục
+- Nhà cung cấp
+- Nhập hàng
+- Sản phẩm

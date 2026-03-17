@@ -1,11 +1,12 @@
 import os
 from PyQt6 import uic, QtWidgets
+from PyQt6.QtCore import Qt
 from src.database.db_connection import DatabaseManager 
 
 # Lấy đường dẫn thư mục
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__)) 
 ROOT_DIR = os.path.dirname(os.path.dirname(CURRENT_DIR))
-UI_PATH = os.path.join(ROOT_DIR, "ui")
+UI_PATH = os.path.join(ROOT_DIR, "ui", "modules_ui", "DanhMuc")
 
 
 # DIALOG THÊM DANH MỤC 
@@ -36,7 +37,7 @@ class AddDanhMuc(QtWidgets.QDialog):
             cursor = conn.cursor()
             
             # Tự động tạo mã danh mục (VD: CAT11)
-            cursor.execute("SELECT MAX(CATEGORY_ID) FROM CATEGORIES")
+            cursor.execute("SELECT MAX(CATEGORYID) FROM CATEGORIES")
             last_id = cursor.fetchone()[0]
             if not last_id:
                 new_id = "CAT01"
@@ -45,7 +46,7 @@ class AddDanhMuc(QtWidgets.QDialog):
                 new_id = f"CAT{current_num + 1:02d}"
             
             # Thêm vào DB
-            cursor.execute("INSERT INTO CATEGORIES (CATEGORY_ID, CATEGORY_NAME, DESCRIPTION) VALUES (?, ?, ?)", 
+            cursor.execute("INSERT INTO CATEGORIES (CATEGORYID, CATEGORYNAME, DESCRIPTION) VALUES (?, ?, ?)", 
                            (new_id, ten_dm, mo_ta))
             conn.commit()
             
@@ -88,7 +89,7 @@ class EditDanhMuc(QtWidgets.QDialog):
         
         try:
             cursor = conn.cursor()
-            cursor.execute("UPDATE CATEGORIES SET CATEGORY_NAME = ?, DESCRIPTION = ? WHERE CATEGORY_ID = ?", 
+            cursor.execute("UPDATE CATEGORIES SET CATEGORYNAME = ?, DESCRIPTION = ? WHERE CATEGORYID = ?", 
                            (ten_dm, mo_ta, self.category_id))
             conn.commit()
             
@@ -125,14 +126,14 @@ class DeleteDanhMuc(QtWidgets.QDialog):
             cursor = conn.cursor()
             
             # KIỂM TRA RÀNG BUỘC: Có sản phẩm nào thuộc danh mục này không?
-            cursor.execute("SELECT COUNT(*) FROM PRODUCTS WHERE CATEGORY_ID = ?", (self.category_id,))
+            cursor.execute("SELECT COUNT(*) FROM PRODUCTS WHERE CATEGORYID = ?", (self.category_id,))
             if cursor.fetchone()[0] > 0:
                 QtWidgets.QMessageBox.warning(self, "Cảnh báo", 
                     f"Không thể xóa '{self.category_name}' vì đang có sản phẩm thuộc danh mục này. Vui lòng xóa/chuyển các sản phẩm đó trước!")
                 return
             
             # Nếu không vướng sản phẩm, tiến hành xóa
-            cursor.execute("DELETE FROM CATEGORIES WHERE CATEGORY_ID = ?", (self.category_id,))
+            cursor.execute("DELETE FROM CATEGORIES WHERE CATEGORYID = ?", (self.category_id,))
             conn.commit()
             
             QtWidgets.QMessageBox.information(self, "Thành công", "Xóa danh mục thành công!")
@@ -148,14 +149,27 @@ class DeleteDanhMuc(QtWidgets.QDialog):
 # BỘ QUẢN LÝ (CONTROLLER CHO MAIN WINDOW)
 
 class DanhMucManager:
-    def __init__(self, table_widget):
+    # 1. Thêm txt_search=None, btn_search=None vào đây
+    def __init__(self, table_widget, txt_search=None, btn_search=None):
         self.table = table_widget
+        self.txt_search = txt_search # 2. Lưu lại biến tìm kiếm
+        
+        # Cấu hình giao diện bảng (giữ nguyên code cũ của bạn)
         self.table.verticalHeader().setVisible(False)
+        self.table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeMode.Fixed)
-        self.table.setColumnWidth(3, 160) 
+        # Cột 4 là cột Thao tác, set kích thước cố định
+        if self.table.columnCount() > 4:
+            header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeMode.Fixed)
+            self.table.setColumnWidth(4, 140) 
+        
+        # 3. Kết nối sự kiện tìm kiếm (MỚI THÊM VÀO)
+        if btn_search and txt_search:
+            btn_search.clicked.connect(self.load_data)
+            txt_search.returnPressed.connect(self.load_data)
 
     def load_data(self):
         """Hàm nạp dữ liệu từ SQL và vẽ bảng"""
@@ -164,7 +178,16 @@ class DanhMucManager:
         if not conn: return
         
         cursor = conn.cursor()
-        cursor.execute("SELECT CATEGORY_ID, CATEGORY_NAME, DESCRIPTION FROM CATEGORIES")
+        cursor.execute("""
+                        SELECT 
+                            c.CATEGORYID, 
+                            c.CATEGORYNAME, 
+                            c.DESCRIPTION,
+                            COUNT(p.PRODUCTID) as PRODUCT_COUNT
+                        FROM CATEGORIES c
+                        LEFT JOIN PRODUCTS p ON c.CATEGORYID = p.CATEGORYID
+                        GROUP BY c.CATEGORYID, c.CATEGORYNAME, c.DESCRIPTION
+                    """)
         rows = cursor.fetchall()
         
         self.table.setRowCount(0)
@@ -177,6 +200,7 @@ class DanhMucManager:
             
             mota = row_data[2] if row_data[2] else ""
             self.table.setItem(row_idx, 2, QtWidgets.QTableWidgetItem(mota))
+            self.table.setItem(row_idx, 3, QtWidgets.QTableWidgetItem(str(row_data[3])))
             
             # Tạo dictionary lưu thông tin để truyền sang các Dialog Sửa/Xóa
             item_dict = {"id": row_data[0], "ten": row_data[1], "mota": mota}
@@ -202,7 +226,7 @@ class DanhMucManager:
         
         layout.addWidget(btn_edit)
         layout.addWidget(btn_delete)
-        self.table.setCellWidget(row, 3, container)
+        self.table.setCellWidget(row, 4, container)
 
     def open_add(self):
         dialog = AddDanhMuc()
