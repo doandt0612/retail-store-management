@@ -1,4 +1,4 @@
-﻿create database QUANLYCUAHANG;
+﻿--create database QUANLYCUAHANG;
 
 
 ---TẠO BẢNG EMPLOYEES
@@ -384,29 +384,29 @@ CHECK (PaymentMethod IN (N'Tiền mặt', N'Chuyển khoản ngân hàng', N'Ví
 
 
 INSERT INTO Employees (EmployeeID, EmployeeName, EmployeeGender, EmployeePhone, EmployeeEmail, HireDate, Status, EmployeeType) VALUES
-(1, N'Lê Quốc Vương', N'Nam', '0901000111', N'vuong.le@cuahang.com', '2020-01-10', N'Đang làm việc', N'Full_time'),
+(1, N'Lê Quốc Chính', N'Nam', '0901000111', N'vuong.le@cuahang.com', '2020-01-10', N'Đang làm việc', N'Full_time'),
 (2, N'Trần Công Anh', N'Nam', '0902000222', N'anhtran@cuahang.com', '2021-03-15', N'Đang làm việc', N'Full_time'),
-(3, N'Nguyễn Hải Kiệt', N'Nam', '0903000333', N'kietnguyen@cuahang.com', '2022-05-20', N'Đang làm việc', N'Full_time'),
-(4, N'Hoàng Yến Thương', N'Nữ', '0904000444', N'thuonghoang@cuahang.com', '2023-08-10', N'Đang làm việc', N'Full_time'),
-(5, N'Phạm Tiến Cao', N'Nam', '0905000555', N'caopham@cuahang.com', '2022-11-01', N'Đã nghỉ việc', N'Full_time'),
-(6, N'Đỗ Minh Nam', N'Nam', '0906000666', N'namdo@cuahang.com', '2021-09-05', N'Đang làm việc', N'Full_time'),
-(7, N'Vũ Thu Hoàn', N'Nữ', '0907000777', N'hoanvu@cuahang.com', '2023-02-14', N'Đang làm việc', N'Full_time'),
+(3, N'Nguyễn Hải Nam', N'Nam', '0903000333', N'kietnguyen@cuahang.com', '2022-05-20', N'Đang làm việc', N'Full_time'),
+(4, N'Hoàng Yến Nhi', N'Nữ', '0904000444', N'thuonghoang@cuahang.com', '2023-08-10', N'Đang làm việc', N'Full_time'),
+(5, N'Phạm Tiến Nhân', N'Nam', '0905000555', N'caopham@cuahang.com', '2022-11-01', N'Đã nghỉ việc', N'Full_time'),
+(6, N'Đỗ Minh Long', N'Nam', '0906000666', N'namdo@cuahang.com', '2021-09-05', N'Đang làm việc', N'Full_time'),
+(7, N'Vũ Thu Phương', N'Nữ', '0907000777', N'hoanvu@cuahang.com', '2023-02-14', N'Đang làm việc', N'Full_time'),
 (8, N'Bùi Thanh Hảo', N'Nữ', '0908000888', N'haobui@cuahang.com', '2024-01-05', N'Đang làm việc', N'Part_time'),
 (9, N'Lý Văn Nhất', N'Nam', '0909000999', N'nhatly@cuahang.com', '2023-12-20', N'Đã nghỉ việc', N'Part_time'),
-(10, N'Đinh Bảo Luôn', N'Nữ', '0910000101', N'luondinh@cuahang.com', '2024-03-01', N'Đang làm việc', N'Part_time'); 
+(10, N'Đinh Bảo Ly', N'Nữ', '0910000101', N'luondinh@cuahang.com', '2024-03-01', N'Đang làm việc', N'Part_time'); 
 
 
 INSERT INTO Accounts (AccountID, EmployeeID, Username, Password, Role, Status) VALUES
-(1, 1, 'vuong.le', '123456', N'Quản lý', N'Đang hoạt động'),
+(1, 1, 'chinh.le', '123456', N'Quản lý', N'Đang hoạt động'),
 (2, 2, 'anh.tran', '123456', N'Nhân viên bán hàng', N'Đang hoạt động'),
-(3, 3, 'kiet.nguyen', '123456', N'Nhân viên bán hàng', N'Đang hoạt động'),
-(4, 4, 'thuong.hoang', '123456', N'Nhân viên bán hàng', N'Đang hoạt động'),
-(5, 5, 'cao.pham', '123456', N'Nhân viên bán hàng', N'Đã bị khóa'),
-(6, 6, 'nam.do', '123456', N'Nhân viên kho', N'Đang hoạt động'),
-(7, 7, 'hoan.vu', '123456', N'Nhân viên kho', N'Đang hoạt động'),
+(3, 3, 'nam.nguyen', '123456', N'Nhân viên bán hàng', N'Đang hoạt động'),
+(4, 4, 'nhi.hoang', '123456', N'Nhân viên bán hàng', N'Đang hoạt động'),
+(5, 5, 'nhan.pham', '123456', N'Nhân viên bán hàng', N'Đã bị khóa'),
+(6, 6, 'long.do', '123456', N'Nhân viên kho', N'Đang hoạt động'),
+(7, 7, 'phuong.vu', '123456', N'Nhân viên kho', N'Đang hoạt động'),
 (8, 8, 'hao.bui', '123456', N'Nhân viên bán hàng', N'Đang hoạt động'),
 (9, 9, 'nhat.ly', '123456', N'Nhân viên bán hàng', N'Đã bị khóa'),
-(10, 10, 'luon.dinh', '123456', N'Nhân viên bán hàng', N'Đang hoạt động');
+(10, 10, 'ly.dinh', '123456', N'Nhân viên bán hàng', N'Đang hoạt động');
 
 
 INSERT INTO Full_Time (EmployeeID, Position, MonthlySalary) VALUES

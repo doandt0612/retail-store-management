@@ -6,15 +6,16 @@ from PyQt6.QtWidgets import QMessageBox
 # Import Database
 from src.database.db_connection import DatabaseManager
 
-# Import các Manager (Dành cho Quản lý)
+# Import các Manager
 from src.modules.Category import DanhMucManager
 from src.modules.Overview import OverviewManager
 from src.modules.Order import OrderManager
-from src.modules.Invoice import InvoiceManager
+# from src.modules.Invoice import InvoiceManager
 from src.modules.Product import ProductManager
 from src.modules.Customer import CustomerManager
 from src.modules.Supplier import SupplierManager
-from src.modules.Account import AccountManager
+
+# TODO: Import PromotionManager và PurchaseManager khi bạn tạo xong
 
 # Lấy đường dẫn gốc của project
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -24,17 +25,14 @@ UI_DIR = os.path.join(CURRENT_DIR, "ui")
 class LoginWindow(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
-        # Load giao diện đăng nhập
         uic.loadUi(os.path.join(UI_DIR, "login.ui"), self)
 
-        # Kiểm tra kết nối DB ngay khi mở app
         self.db = DatabaseManager()
         if not self.db.get_connection():
             QMessageBox.critical(self, "Lỗi Hệ Thống", "Không thể kết nối CSDL!\nVui lòng kiểm tra Server hoặc file .env")
 
-        # Kết nối sự kiện nút đăng nhập
         self.btnDangNhap.clicked.connect(self.handle_login)
-        self.txtMatKhau.returnPressed.connect(self.handle_login) # Bấm Enter ở ô mật khẩu để đăng nhập
+        self.txtMatKhau.returnPressed.connect(self.handle_login)
 
     def handle_login(self):
         username = self.txtTenDangNhap.text().strip()
@@ -47,7 +45,6 @@ class LoginWindow(QtWidgets.QDialog):
         conn = self.db.get_connection()
         if not conn: return
 
-        # Các biến lưu trạng thái để chuyển UI sau khi đóng DB
         role = None
         emp_id = None
         login_success = False
@@ -60,32 +57,30 @@ class LoginWindow(QtWidgets.QDialog):
 
             if account:
                 acc_id, emp_id, role, status = account
-
                 if status == "Đã bị khóa":
-                    QMessageBox.warning(self, "Từ chối truy cập", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản lý!")
+                    QMessageBox.warning(self, "Từ chối", "Tài khoản của bạn đã bị khóa!")
                     return
-                
                 login_success = True
             else:
                 QMessageBox.warning(self, "Thất bại", "Tên đăng nhập hoặc mật khẩu không chính xác!")
-
         except Exception as e:
             QMessageBox.critical(self, "Lỗi DB", f"Lỗi truy vấn dữ liệu:\n{str(e)}")
         finally:
             conn.close()
 
-        # THỰC HIỆN CHUYỂN TRANG
+        # ==========================================
+        # XỬ LÝ ẨN MÀN HÌNH ĐĂNG NHẬP MƯỢT MÀ
+        # ==========================================
         if login_success:
-            QMessageBox.information(self, "Đăng nhập thành công", f"Chào mừng bạn!\nVai trò: {role}")
+            self.hide() # 1. Ẩn màn hình đăng nhập NGAY LẬP TỨC
+            # 2. Dùng None thay vì self để thông báo không bị dính vào màn hình đăng nhập cũ
+            QMessageBox.information(None, "Thành công", f"Đăng nhập thành công!\nVai trò: {role}")
+            # 3. Load giao diện chính
             self.route_to_main_window(role, emp_id)
 
-
     def route_to_main_window(self, role, emp_id):
-        """Hàm điều hướng mở cửa sổ tương ứng với quyền"""
-        self.hide() # Ẩn màn hình đăng nhập
-
+        # Đã bỏ lệnh self.hide() ở đây vì đã gọi ở trên
         try:
-            # TRUYỀN 'self' (tức là LoginWindow) VÀO CÁC WINDOW CHÍNH
             if role == "Quản lý":
                 self.main_window = ManagerWindow(emp_id, self)
             elif role == "Nhân viên bán hàng":
@@ -93,138 +88,282 @@ class LoginWindow(QtWidgets.QDialog):
             elif role == "Nhân viên kho":
                 self.main_window = WarehouseWindow(emp_id, self)
             else:
-                QMessageBox.critical(self, "Lỗi", "Vai trò không hợp lệ trong hệ thống!")
+                QMessageBox.critical(None, "Lỗi", "Vai trò không hợp lệ!")
                 self.show()
                 return
 
             self.main_window.show()
         except Exception as e:
-            QMessageBox.critical(self, "Lỗi Giao Diện", f"Không thể tải giao diện cho vai trò {role}:\n{str(e)}")
+            QMessageBox.critical(None, "Lỗi Giao Diện", f"Không thể tải giao diện {role}:\n{str(e)}")
             self.show() # Hiện lại form đăng nhập nếu lỗi UI
 
 
 # ==========================================
-# CÁC CỬA SỔ CHÍNH THEO TỪNG VỊ TRÍ
+# LỚP CƠ SỞ (Chứa logic Đăng xuất hiện lại Login)
 # ==========================================
-
-class ManagerWindow(QtWidgets.QMainWindow):
-    """Cửa sổ dành cho Quản lý cửa hàng (Toàn quyền)"""
+class BaseRoleWindow(QtWidgets.QMainWindow):
     def __init__(self, emp_id, login_window):
         super().__init__()
         self.emp_id = emp_id
-        self.login_window = login_window  # Lưu lại màn hình đăng nhập
-        
-        ui_path = os.path.join(UI_DIR, "QuanLyCuaHang", "mainQLCH.ui")
-        if not os.path.exists(ui_path):
-            raise FileNotFoundError(f"Lỗi đường dẫn: Không tìm thấy file tại '{ui_path}'")
-        uic.loadUi(ui_path, self)
+        self.login_window = login_window
 
-        self.init_managers()
-        self.connect_buttons()
-        
-        # Mặc định mở trang tổng quan
-        self.stackedWidget.setCurrentIndex(0)
-        self.overview_manager.load_recent_orders()
+    def setup_common_events(self):
+        """Hàm dùng chung: Gắn sự kiện đăng xuất nếu UI có nút btnDangXuat"""
+        if hasattr(self, 'btnDangXuat'):
+            self.btnDangXuat.clicked.connect(self.logout)
 
-    def init_managers(self):
-        self.category_manager = DanhMucManager(self.tblDanhMuc)
-        self.overview_manager = OverviewManager(self.tblDonHangGanDay)
-        self.invoice_manager = InvoiceManager(self.tblHoaDon, self.btnTruoc_3, self.btnSau_3, self.lblHienThiHD)
-        self.order_manager = OrderManager(self.tblDonHang, self.btnTruoc, self.btnSau, self.lblHienThiDH)
-        self.product_manager = ProductManager(
-            self.tblDanhSachSP, self.btnTruoc_2, self.btnSau_2, 
-            self.lblHienThiSP, self.txtTimSP_2, self.cbDanhMuc, self.cbNhaCungCap
+    def logout(self):
+        """Logic đăng xuất với Xác nhận"""
+        reply = QMessageBox.question(
+            self, 'Xác nhận', 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
         )
-        self.supplier_manager = SupplierManager(self.tblDanhSachNCC)
-        self.customer_manager = CustomerManager(self.tblDanhSachKH)
-        self.account_manager = AccountManager(self.tblDanhSachTK)
 
-    def connect_buttons(self):
-        # Chuyển trang
-        self.btnTongQuan.clicked.connect(lambda: self.change_page(0, self.overview_manager.load_recent_orders))
-        self.btnDonHang.clicked.connect(lambda: self.change_page(1, self.order_manager.load_data))
-        self.btnHoaDon.clicked.connect(lambda: self.change_page(2, self.invoice_manager.load_data))
-        self.btnSanPham.clicked.connect(lambda: self.change_page(3, self.product_manager.load_data))
-        self.btnDanhMuc.clicked.connect(lambda: self.change_page(4, self.category_manager.load_data))
-        self.btnNhaCungCap.clicked.connect(lambda: self.change_page(5, self.supplier_manager.load_data))
-        self.btnKhachHang.clicked.connect(lambda: self.change_page(6, self.customer_manager.load_data))
-        self.btnTaiKhoan.clicked.connect(lambda: self.change_page(7, self.account_manager.load_data))
+        if reply == QMessageBox.StandardButton.Yes:
+            self.close()                          # 1. Tắt giao diện chính (Quản lý/Bán hàng...)
+            self.login_window.txtMatKhau.clear()  # 2. Xóa ô mật khẩu để bảo mật
+            self.login_window.show()              # 3. HIỆN LẠI màn hình đăng nhập
 
-        # Nút chức năng
-        self.btnThemDanhMuc.clicked.connect(self.category_manager.open_add)
-        self.btnTaoDonHang.clicked.connect(self.order_manager.open_create)
-        self.btnThemSP.clicked.connect(self.product_manager.open_add)
-        self.btnThemKH.clicked.connect(self.customer_manager.open_add)
-        self.btnThemNCC.clicked.connect(self.supplier_manager.open_add)
-        self.btnThemTK.clicked.connect(self.account_manager.open_add)
-        
-        # NÚT ĐĂNG XUẤT
-        self.btnDangXuat.clicked.connect(self.logout)
-
-    def change_page(self, index, load_function=None):
-        self.stackedWidget.setCurrentIndex(index)
+    def change_page(self, page_widget, load_function=None):
+        self.stackedWidget.setCurrentWidget(page_widget)
         if load_function:
             load_function()
 
-    def logout(self):
-        """Hàm xử lý đăng xuất chung"""
-        QMessageBox.information(self, "Đăng xuất", "Bạn đã đăng xuất thành công!")
-        self.close()                             # Đóng cửa sổ hiện tại
-        self.login_window.txtMatKhau.clear()     # Xóa ô mật khẩu cũ để bảo mật
-        self.login_window.show()                 # Hiển thị lại màn hình Đăng nhập
+    # --- CÔNG CỤ TẠO WIDGET ẢO ĐỂ CHỐNG LỖI (ANTI-CRASH) ---
+    def get_widget(self, names, widget_class):
+        """Tìm widget theo tên. Nếu UI thiết kế thiếu, tự động tạo widget ảo tàng hình để chống crash Manager."""
+        for name in names:
+            if hasattr(self, name):
+                return getattr(self, name)
+        # Nếu không có nút thật trên giao diện, tạo nút ảo không hiển thị
+        dummy = widget_class(self)
+        dummy.hide()
+        return dummy
+
+    # --- CÁC HÀM KHỞI TẠO MODULE ---
+    
+    def setup_module_overview(self):
+        if not hasattr(self, 'tblDonHangGanDay'): return
+        
+        # ĐỔI TÊN Ở 2 DÒNG NÀY CHO KHỚP VỚI HÌNH ẢNH:
+        lbl_revenue = self.get_widget(['lblHienThiTongDoanhThu'], QtWidgets.QLabel)
+        lbl_orders = self.get_widget(['lblHienThiTongDonHang'], QtWidgets.QLabel)
+        
+        self.overview_manager = OverviewManager(self.tblDonHangGanDay, lbl_revenue, lbl_orders)
+        
+        # --- Kế thừa chức năng nhảy trang Khách hàng từ bảng Đơn hàng gần đây ---
+        def handle_switch_to_customer(customer_data):
+            if hasattr(self, 'pageKhachHang'):
+                self.stackedWidget.setCurrentWidget(self.pageKhachHang)
+            if hasattr(self, 'customer_manager'):
+                self.customer_manager.open_history(customer_data)
+                
+        self.overview_manager.switch_to_customer_callback = handle_switch_to_customer
+        # ------------------------------------------------------------------------
+
+        if hasattr(self, 'btnTongQuan'):
+            self.btnTongQuan.clicked.connect(lambda: self.change_page(self.pageTongQuan, self.overview_manager.load_data))
+        # ------------------------------------------------------------------------
+
+        if hasattr(self, 'btnTongQuan'):
+            self.btnTongQuan.clicked.connect(lambda: self.change_page(self.pageTongQuan, self.overview_manager.load_data))
+
+    def setup_module_order(self):
+        if not hasattr(self, 'tblDonHang'): return
+        
+        btn_prev = self.get_widget(['btnTruoc'], QtWidgets.QPushButton)
+        btn_next = self.get_widget(['btnSau'], QtWidgets.QPushButton)
+        lbl_status = self.get_widget(['lblHienThiDH'], QtWidgets.QLabel)
+        
+        self.order_manager = OrderManager(self.tblDonHang, btn_prev, btn_next, lbl_status)
+        
+        # --- THÊM ĐOẠN NÀY ĐỂ KẾT NỐI VỚI MODULE KHÁCH HÀNG ---
+        def handle_switch_to_customer(customer_data):
+            # 1. Chuyển sang trang Khách hàng (nếu có)
+            if hasattr(self, 'pageKhachHang'):
+                self.stackedWidget.setCurrentWidget(self.pageKhachHang)
+            
+            # 2. Gọi hàm mở Lịch sử mua hàng của Khách hàng
+            if hasattr(self, 'customer_manager'):
+                # Truyền data khách hàng sang cho hàm open_history
+                self.customer_manager.open_history(customer_data)
+                
+        # Gán callback vào OrderManager
+        self.order_manager.switch_to_customer_callback = handle_switch_to_customer
+        # -----------------------------------------------------
+
+        if hasattr(self, 'btnDonHang'):
+            self.btnDonHang.clicked.connect(lambda: self.change_page(self.pageDonHang, self.order_manager.load_data))
+        if hasattr(self, 'btnTaoDonHang'):
+            self.btnTaoDonHang.clicked.connect(self.order_manager.open_create)
+
+    # def setup_module_invoice(self):
+    #     if not hasattr(self, 'tblHoaDon'): return
+        
+    #     btn_prev = self.get_widget(['btnTruoc_3'], QtWidgets.QPushButton)
+    #     btn_next = self.get_widget(['btnSau_3'], QtWidgets.QPushButton)
+    #     lbl_status = self.get_widget(['lblHienThiHD'], QtWidgets.QLabel)
+        
+    #     self.invoice_manager = InvoiceManager(self.tblHoaDon, btn_prev, btn_next, lbl_status)
+        
+    #     if hasattr(self, 'btnHoaDon'):
+    #         self.btnHoaDon.clicked.connect(lambda: self.change_page(self.pageHoaDon, self.invoice_manager.load_data))
+
+    def setup_module_product(self):
+        if not hasattr(self, 'tblDanhSachSP'): return
+        
+        txt_search = self.get_widget(['txtTimSP_2'], QtWidgets.QLineEdit)
+        cb_cat = self.get_widget(['cbDanhMuc'], QtWidgets.QComboBox)
+        cb_sup = self.get_widget(['cbNhaCungCap'], QtWidgets.QComboBox)
+        
+        self.product_manager = ProductManager(self.tblDanhSachSP, txt_search, cb_cat, cb_sup)
+        
+        # --- THIẾT LẬP CALLBACK CHO MODULE SẢN PHẨM ---
+        
+        # 1. Callback khi click tên Danh Mục
+        def handle_switch_to_category(cat_id, cat_name):
+            if hasattr(self, 'pageDanhMuc'):
+                # Nhảy sang trang Danh mục
+                self.stackedWidget.setCurrentWidget(self.pageDanhMuc)
+                # Tự động gõ tên danh mục vào ô tìm kiếm và lọc
+                if hasattr(self, 'category_manager') and hasattr(self.category_manager, 'txt_search') and self.category_manager.txt_search:
+                    self.category_manager.txt_search.setText(cat_name)
+                    self.category_manager.load_data()
+
+        # 2. Callback khi click tên Nhà cung cấp
+        def handle_open_supplier(sup_id):
+            if hasattr(self, 'supplier_manager'):
+                # Gọi hàm xem chi tiết NCC (Bạn cần tạo hàm này bên SupplierManager)
+                # Tạm thời hiển thị thông báo:
+                QtWidgets.QMessageBox.information(self, "Thông tin", f"Mở chi tiết NCC ID: {sup_id}")
+
+        self.product_manager.switch_to_category_callback = handle_switch_to_category
+        self.product_manager.open_supplier_callback = handle_open_supplier
+        # -----------------------------------------------
+
+        if hasattr(self, 'btnSanPham'):
+            self.btnSanPham.clicked.connect(lambda: self.change_page(self.pageSanPham, self.product_manager.load_data))
+        if hasattr(self, 'btnThemSP'):
+            self.btnThemSP.clicked.connect(self.product_manager.open_add)
+
+    def setup_module_category(self):
+        if not hasattr(self, 'tblDanhMuc'): return
+        
+        # Lấy thêm ô tìm kiếm và nút tìm kiếm (nếu có trên giao diện)
+        txt_search = self.get_widget(['txtTimKiemDanhMuc'], QtWidgets.QLineEdit)
+        btn_search = self.get_widget(['btnTimKiemDanhMuc'], QtWidgets.QPushButton)
+        
+        # Truyền vào Manager
+        self.category_manager = DanhMucManager(self.tblDanhMuc, txt_search, btn_search)
+        
+        if hasattr(self, 'btnDanhMuc'):
+            self.btnDanhMuc.clicked.connect(lambda: self.change_page(self.pageDanhMuc, self.category_manager.load_data))
+        if hasattr(self, 'btnThemDanhMuc'):
+            self.btnThemDanhMuc.clicked.connect(self.category_manager.open_add)
+
+    def setup_module_customer(self):
+        if not hasattr(self, 'tblDanhSachKH'): return
+
+        txt_search = self.get_widget(['txtTimKiemKH'], QtWidgets.QLineEdit)
+        btn_search = self.get_widget(['btnTimKiemKH'], QtWidgets.QPushButton)
+
+        self.customer_manager = CustomerManager(self.tblDanhSachKH, txt_search, btn_search)
+
+        if hasattr(self, 'btnKhachHang'):
+            self.btnKhachHang.clicked.connect(lambda: self.change_page(self.pageKhachHang, self.customer_manager.load_data))
+        if hasattr(self, 'btnThemKH'):
+            self.btnThemKH.clicked.connect(self.customer_manager.open_add)
+
+    def setup_module_supplier(self):
+        if not hasattr(self, 'tblDanhSachNCC'): return
+        self.supplier_manager = SupplierManager(self.tblDanhSachNCC)
+        if hasattr(self, 'btnNhaCungCap'):
+            self.btnNhaCungCap.clicked.connect(lambda: self.change_page(self.pageNhaCungCap, self.supplier_manager.load_data))
+        if hasattr(self, 'btnThemNCC'):
+            self.btnThemNCC.clicked.connect(self.supplier_manager.open_add)
 
 
-class SalesWindow(QtWidgets.QMainWindow):
-    """Cửa sổ dành cho Nhân viên bán hàng"""
+
+    def setup_module_promotion(self):
+        # TODO: Điền thông tin set up khuyến mãi
+        pass
+        
+    def setup_module_purchase(self):
+        # TODO: Điền thông tin set up nhập hàng
+        pass
+
+
+    def setup_module_employee(self):
+        # TODO: Điền thông tin set up nhân viên       
+        pass
+
+
+# ==========================================
+# CÁC CỬA SỔ CHÍNH THEO TỪNG ROLE 
+# ==========================================
+
+class ManagerWindow(BaseRoleWindow):
     def __init__(self, emp_id, login_window):
-        super().__init__()
-        self.emp_id = emp_id
-        self.login_window = login_window  # Lưu lại màn hình đăng nhập
+        super().__init__(emp_id, login_window)
+        uic.loadUi(os.path.join(UI_DIR, "QuanLyCuaHang", "mainQLCH.ui"), self)
         
-        ui_path = os.path.join(UI_DIR, "NhanVienBanHang", "mainNVBH.ui")
-        if not os.path.exists(ui_path): raise FileNotFoundError(f"Không tìm thấy: {ui_path}")
-        uic.loadUi(ui_path, self)
+        self.setup_common_events()
         
-        # TODO: Cấu hình manager cho Sales tại đây
+        self.setup_module_overview()
+        self.setup_module_order()
+        self.setup_module_product()
+        self.setup_module_category()
+        self.setup_module_supplier()
+        self.setup_module_customer()
         
-        # NÚT ĐĂNG XUẤT
-        self.btnDangXuat.clicked.connect(self.logout)
+        # Gọi thêm các module mới cho Quản lý
+        self.setup_module_promotion()
+        self.setup_module_purchase()
+        self.setup_module_employee()
+        
+        # ---> NÚT ĐẦU TIÊN CỦA QUẢN LÝ LÀ: TỔNG QUAN <---
+        if hasattr(self, 'pageTongQuan') and hasattr(self, 'overview_manager'):
+            self.change_page(self.pageTongQuan, self.overview_manager.load_recent_orders)
 
-    def logout(self):
-        QMessageBox.information(self, "Đăng xuất", "Bạn đã đăng xuất thành công!")
-        self.close()
-        self.login_window.txtMatKhau.clear()
-        self.login_window.show()
 
-
-class WarehouseWindow(QtWidgets.QMainWindow):
-    """Cửa sổ dành cho Nhân viên kho"""
+class SalesWindow(BaseRoleWindow):
     def __init__(self, emp_id, login_window):
-        super().__init__()
-        self.emp_id = emp_id
-        self.login_window = login_window  # Lưu lại màn hình đăng nhập
+        super().__init__(emp_id, login_window)
+        uic.loadUi(os.path.join(UI_DIR, "NhanVienBanHang", "mainNVBH.ui"), self)
         
-        ui_path = os.path.join(UI_DIR, "NhanVienKho", "mainNVK.ui")
-        if not os.path.exists(ui_path): raise FileNotFoundError(f"Không tìm thấy: {ui_path}")
-        uic.loadUi(ui_path, self)
+        self.setup_common_events()
         
-        # TODO: Cấu hình manager cho Warehouse tại đây
-        
-        # NÚT ĐĂNG XUẤT
-        self.btnDangXuat.clicked.connect(self.logout)
+        self.setup_module_category()
+        self.setup_module_order()
+        self.setup_module_customer()
+        self.setup_module_product()
+        self.setup_module_promotion()
 
-    def logout(self):
-        QMessageBox.information(self, "Đăng xuất", "Bạn đã đăng xuất thành công!")
-        self.close()
-        self.login_window.txtMatKhau.clear()
-        self.login_window.show()
+        # ---> NÚT ĐẦU TIÊN CỦA BÁN HÀNG LÀ: ĐƠN HÀNG <---
+        if hasattr(self, 'pageDonHang') and hasattr(self, 'order_manager'):
+            self.change_page(self.pageDonHang, self.order_manager.load_data)
+
+
+class WarehouseWindow(BaseRoleWindow):
+    def __init__(self, emp_id, login_window):
+        super().__init__(emp_id, login_window)
+        uic.loadUi(os.path.join(UI_DIR, "NhanVienKho", "mainNVK.ui"), self)
+        
+        self.setup_common_events()
+        
+        self.setup_module_category()
+        self.setup_module_supplier()
+        self.setup_module_product()
+        self.setup_module_purchase()
+
+        # ---> NÚT ĐẦU TIÊN CỦA THỦ KHO LÀ: DANH MỤC <---
+        if hasattr(self, 'pageDanhMuc') and hasattr(self, 'category_manager'):
+            self.change_page(self.pageDanhMuc, self.category_manager.load_data)
 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    
-    # Khởi động ứng dụng bằng Màn hình Đăng nhập
     login_window = LoginWindow()
     login_window.show()
-    
     sys.exit(app.exec())

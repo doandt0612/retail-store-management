@@ -1,3 +1,4 @@
+MODULE NHÂN VIÊN BÁN HÀNG CÓ THỂ TRUY CẬP
 - Danh mục
 - Đơn hàng
 - Khách hàng

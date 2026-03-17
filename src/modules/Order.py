@@ -1,412 +1,293 @@
 import os
-from PyQt6 import uic, QtWidgets, QtCore
+from PyQt6 import uic, QtWidgets
+from PyQt6.QtCore import Qt
 from src.database.db_connection import DatabaseManager
-from datetime import datetime
 
-# Thiết lập đường dẫn gốc
+# Lấy đường dẫn gốc
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CURRENT_DIR))
-UI_PATH = os.path.join(ROOT_DIR, "ui")
+UI_PATH = os.path.join(ROOT_DIR, "ui", "modules_ui", "DonHang")
 
-# --- LỚP TẠO ĐƠN HÀNG MỚI ---
-class CreateOrder(QtWidgets.QDialog):
-    def __init__(self):
-        super().__init__()
-        uic.loadUi(os.path.join(UI_PATH, "createDonHang.ui"), self)
-        self.selected_products = [] 
-        self.tblDanhSachSP.verticalHeader().setVisible(False)
-        self.tblDanhSachSP.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.load_combobox_data()
-        self.btnThem.clicked.connect(self.add_product_to_list)
-        self.btnTaoDonHang.clicked.connect(self.submit_order)
-
-    def load_combobox_data(self):
-        db = DatabaseManager()
-        conn = db.get_connection()
-        if not conn: return
-        cursor = conn.cursor()
-        cursor.execute("SELECT CUSTOMER_ID, CUSTOMER_NAME FROM CUSTOMERS")
-        self.cbKhachHang.clear()
-        for cid, name in cursor.fetchall(): 
-            self.cbKhachHang.addItem(f"{cid} - {name}", cid)
-            
-        cursor.execute("SELECT PRODUCT_ID, PRODUCT_NAME, UNIT_PRICE FROM PRODUCTS WHERE PRODUCT_STATUS = N'Còn hàng'")
-        self.cbSanPham.clear()
-        for pid, name, price in cursor.fetchall(): 
-            self.cbSanPham.addItem(name, {"id": pid, "price": float(price)})
-        conn.close()
-
-    def add_product_to_list(self):
-        product_name = self.cbSanPham.currentText()
-        product_data = self.cbSanPham.currentData()
-        quantity = self.spnSoLuong.value()
-        if quantity <= 0: return
-
-        for i, item in enumerate(self.selected_products):
-            if item["id"] == product_data["id"]:
-                item["qty"] += quantity
-                item["total"] = item["qty"] * product_data["price"]
-                self.tblDanhSachSP.setItem(i, 1, QtWidgets.QTableWidgetItem(str(item["qty"])))
-                self.tblDanhSachSP.setItem(i, 2, QtWidgets.QTableWidgetItem(f"{item['total']:,.0f}"))
-                self.update_summary()
-                return
-
-        total_item_price = product_data["price"] * quantity
-        row = self.tblDanhSachSP.rowCount()
-        self.tblDanhSachSP.insertRow(row)
-        self.tblDanhSachSP.setItem(row, 0, QtWidgets.QTableWidgetItem(product_name))
-        self.tblDanhSachSP.setItem(row, 1, QtWidgets.QTableWidgetItem(str(quantity)))
-        self.tblDanhSachSP.setItem(row, 2, QtWidgets.QTableWidgetItem(f"{total_item_price:,.0f}"))
-        
-        self.selected_products.append({
-            "id": product_data["id"], 
-            "name": product_name, 
-            "qty": quantity, 
-            "price": product_data["price"], 
-            "total": total_item_price
-        })
-        self.update_summary()
-
-    def update_summary(self):
-        total_items = sum(p['qty'] for p in self.selected_products)
-        total_amount = sum(p['total'] for p in self.selected_products)
-        self.lblHienThiSoMon.setText(str(total_items))
-        self.lblHienThiSoTienTongCong.setText(f"{total_amount:,.0f} VNĐ")
-
-    def submit_order(self):
-        if not self.selected_products: return
-        db = DatabaseManager()
-        conn = db.get_connection()
-        if not conn: return
-        try:
-            cursor = conn.cursor()
-            cursor.execute("SELECT MAX(ORDER_ID) FROM ORDERS")
-            last_id = cursor.fetchone()[0]
-            new_id = f"ORD{int(last_id.replace('ORD', '')) + 1:02d}" if last_id else "ORD01"
-            
-            cursor.execute("INSERT INTO ORDERS (ORDER_ID, CUSTOMER_ID, ORDER_DATE, ORDER_STATUS) VALUES (?, ?, ?, ?)", 
-                           (new_id, self.cbKhachHang.currentData(), datetime.now().strftime('%Y-%m-%d'), "Đã thanh toán"))
-            
-            for p in self.selected_products:
-                cursor.execute("INSERT INTO ORDERDETAILS (ORDER_ID, PRODUCT_ID, ORDER_QUANTITY) VALUES (?, ?, ?)", (new_id, p['id'], p['qty']))
-            
-            conn.commit()
-            self.accept()
-        except Exception as e: 
-            conn.rollback()
-            QtWidgets.QMessageBox.critical(self, "Lỗi", str(e))
-        finally: 
-            conn.close()
-
-# --- LỚP CHỈNH SỬA ĐƠN HÀNG ---
-class EditOrder(QtWidgets.QDialog):
-    def __init__(self, order_id):
-        super().__init__()
-        uic.loadUi(os.path.join(UI_PATH, "editDonHang.ui"), self)
-        self.order_id = order_id
-        self.selected_products = []
-        
-        self.tblDanhSachSP.verticalHeader().setVisible(False)
-        self.tblDanhSachSP.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        
-        self.load_initial_data()
-        self.btnThem.clicked.connect(self.add_product_to_list)
-        self.btnSuaDonHang.clicked.connect(self.save_changes)
-
-    def load_initial_data(self):
-        db = DatabaseManager()
-        conn = db.get_connection()
-        if not conn: return
-        cursor = conn.cursor()
-        
-        # 1. Nạp Combo Boxes
-        cursor.execute("SELECT CUSTOMER_ID, CUSTOMER_NAME FROM CUSTOMERS")
-        for cid, name in cursor.fetchall(): 
-            self.cbKhachHang.addItem(f"{cid} - {name}", cid)
-            
-        cursor.execute("SELECT PRODUCT_ID, PRODUCT_NAME, UNIT_PRICE FROM PRODUCTS WHERE PRODUCT_STATUS = N'Còn hàng'")
-        for pid, name, price in cursor.fetchall(): 
-            self.cbSanPham.addItem(name, {"id": pid, "price": float(price)})
-        
-        # 2. Lấy Header đơn hàng cũ
-        cursor.execute("SELECT CUSTOMER_ID FROM ORDERS WHERE ORDER_ID = ?", (self.order_id,))
-        res = cursor.fetchone()
-        if res: 
-            self.cbKhachHang.setCurrentIndex(self.cbKhachHang.findData(res[0]))
-        
-        # 3. Lấy danh sách sản phẩm cũ
-        cursor.execute("""
-            SELECT P.PRODUCT_ID, P.PRODUCT_NAME, OD.ORDER_QUANTITY, P.UNIT_PRICE
-            FROM ORDERDETAILS OD JOIN PRODUCTS P ON OD.PRODUCT_ID = P.PRODUCT_ID
-            WHERE OD.ORDER_ID = ?
-        """, (self.order_id,))
-        
-        for row in cursor.fetchall():
-            pid, name, qty, price = row
-            total = qty * float(price)
-            self.selected_products.append({
-                "id": pid, "name": name, "qty": qty, "price": float(price), "total": total
-            })
-            
-        self.refresh_table()
-        conn.close()
-
-    def refresh_table(self):
-        self.tblDanhSachSP.setRowCount(0)
-        for row_idx, p in enumerate(self.selected_products):
-            self.tblDanhSachSP.insertRow(row_idx)
-            self.tblDanhSachSP.setItem(row_idx, 0, QtWidgets.QTableWidgetItem(p["name"]))
-            self.tblDanhSachSP.setItem(row_idx, 1, QtWidgets.QTableWidgetItem(str(p["qty"])))
-            self.tblDanhSachSP.setItem(row_idx, 2, QtWidgets.QTableWidgetItem(f"{p['total']:,.0f}"))
-        self.update_summary()
-
-    def add_product_to_list(self):
-        name = self.cbSanPham.currentText()
-        data = self.cbSanPham.currentData()
-        qty = self.spnSoLuong.value()
-        if qty <= 0: return
-        
-        for item in self.selected_products:
-            if item["id"] == data["id"]:
-                item["qty"] += qty
-                item["total"] = item["qty"] * data["price"]
-                self.refresh_table()
-                return
-                
-        self.selected_products.append({
-            "id": data["id"], "name": name, "qty": qty, "price": data["price"], "total": qty * data["price"]
-        })
-        self.refresh_table()
-
-    def update_summary(self):
-        total_items = sum(p['qty'] for p in self.selected_products)
-        total_amount = sum(p['total'] for p in self.selected_products)
-        self.lblHienThiSoMon.setText(str(total_items))
-        self.lblHienThiSoTienTongCong.setText(f"{total_amount:,.0f} VNĐ")
-
-    def save_changes(self):
-        if not self.selected_products: return
-        db = DatabaseManager()
-        conn = db.get_connection()
-        if not conn: return
-        try:
-            cursor = conn.cursor()
-            # Cập nhật khách hàng
-            cursor.execute("UPDATE ORDERS SET CUSTOMER_ID = ? WHERE ORDER_ID = ?", (self.cbKhachHang.currentData(), self.order_id))
-            # Xóa chi tiết cũ và chèn lại
-            cursor.execute("DELETE FROM ORDERDETAILS WHERE ORDER_ID = ?", (self.order_id,))
-            for p in self.selected_products:
-                cursor.execute("INSERT INTO ORDERDETAILS (ORDER_ID, PRODUCT_ID, ORDER_QUANTITY) VALUES (?, ?, ?)", (self.order_id, p['id'], p['qty']))
-            conn.commit()
-            self.accept()
-        except Exception as e: 
-            conn.rollback()
-            QtWidgets.QMessageBox.critical(self, "Lỗi", str(e))
-        finally: 
-            conn.close()
-
-# --- LỚP XEM CHI TIẾT ---
+# ==========================================
+# DIALOG CHI TIẾT ĐƠN HÀNG (KÈM CHUYỂN TRANG KHÁCH HÀNG)
+# ==========================================
 class ViewOrder(QtWidgets.QDialog):
-    def __init__(self, order_data):
+    def __init__(self, data, switch_to_customer_callback=None):
         super().__init__()
         uic.loadUi(os.path.join(UI_PATH, "viewDonHang.ui"), self)
-        self.order_id = order_data['id'] 
-        self.tblDanhSachSP.verticalHeader().setVisible(False)
-        self.tblDanhSachSP.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.load_order_details()
-
-    def load_order_details(self):
-        db = DatabaseManager(); conn = db.get_connection()
-        if not conn: return
-        cursor = conn.cursor()
         
-        # 1. Lấy danh sách sản phẩm trước để tính tổng số món
-        cursor.execute("""
-            SELECT P.PRODUCT_NAME, OD.ORDER_QUANTITY, P.UNIT_PRICE, (OD.ORDER_QUANTITY * P.UNIT_PRICE) 
-            FROM ORDERDETAILS OD JOIN PRODUCTS P ON OD.PRODUCT_ID = P.PRODUCT_ID 
-            WHERE OD.ORDER_ID = ?
-        """, (self.order_id,))
-        rows = cursor.fetchall()
+        self.order_id = data['id']
+        self.customer_data = data['customer_info'] # Chứa id, tên, sdt của KH
+        self.switch_to_customer_callback = switch_to_customer_callback
         
-        total_a = 0; total_q = 0
-        for r in rows:
-            total_q += r[1]; total_a += r[3]
+        self.load_general_info(data)
+        self.load_product_list()
+        self.load_payment_info()
+        
+        # Nút đóng
+        if hasattr(self, 'btnDong'):
+            self.btnDong.clicked.connect(self.close)
 
-        # 2. Lấy Header và hiển thị số món ngay tại khúc này
-        cursor.execute("SELECT O.ORDER_ID, C.CUSTOMER_NAME FROM ORDERS O JOIN CUSTOMERS C ON O.CUSTOMER_ID = C.CUSTOMER_ID WHERE O.ORDER_ID = ?", (self.order_id,))
-        header = cursor.fetchone()
-        if header: 
-            self.lblHienThiMaDon.setText(f"Đơn hàng: {header[0]}")
-            self.lblHienThiKH.setText(header[1])
-            
-        # 3. Đổ dữ liệu vào bảng
-        self.tblDanhSachSP.setRowCount(0)
-        for i, r in enumerate(rows):
-            self.tblDanhSachSP.insertRow(i)
-            self.tblDanhSachSP.setItem(i, 0, QtWidgets.QTableWidgetItem(r[0]))
-            self.tblDanhSachSP.setItem(i, 1, QtWidgets.QTableWidgetItem(str(r[1])))
-            self.tblDanhSachSP.setItem(i, 2, QtWidgets.QTableWidgetItem(f"{r[2]:,.0f}"))
-            self.tblDanhSachSP.setItem(i, 3, QtWidgets.QTableWidgetItem(f"{r[3]:,.0f}"))
-            
-        # 4. Cập nhật các nhãn tóm tắt bên dưới
-        self.lblHienThiSoMon.setText(str(total_q))
-        self.lblHienThiTongCong.setText(f"{total_a:,.0f} VNĐ")
-        conn.close()
+    def load_general_info(self, data):
+        """1. Thông tin chung"""
+        if hasattr(self, 'lblHienThiMaDon'): self.lblHienThiMaDon.setText(str(data['id']))
+        if hasattr(self, 'lblHienThiNgayMua'): self.lblHienThiNgayMua.setText(data['ngay'])
+        if hasattr(self, 'lblHienThiTongTien'): self.lblHienThiTongTien.setText(data['tien'])
+        
+        # Xử lý màu sắc trạng thái
+        if hasattr(self, 'lblHienThiTrangThai'):
+            self.lblHienThiTrangThai.setText(data['trang_thai'])
+            if "Đã thanh toán" in data['trang_thai']:
+                self.lblHienThiTrangThai.setStyleSheet("color: #10b981; font-weight: bold;")
+            else:
+                self.lblHienThiTrangThai.setStyleSheet("color: #ef4444; font-weight: bold;")
+        
+        # BIẾN TÊN KHÁCH HÀNG THÀNH LINK CLICK ĐƯỢC
+        if hasattr(self, 'lblHienThiKhachHang'):
+            ten_kh = self.customer_data['ten']
+            link_html = f'<a href="#cus" style="color: #2563eb; text-decoration: none; font-weight: bold;">{ten_kh}</a>'
+            self.lblHienThiKhachHang.setText(link_html)
+            self.lblHienThiKhachHang.setOpenExternalLinks(False)
+            self.lblHienThiKhachHang.linkActivated.connect(self.on_customer_name_clicked)
 
-# --- LỚP XÓA ---
-class DeleteOrder(QtWidgets.QDialog):
-    def __init__(self, order_id):
-        super().__init__()
-        uic.loadUi(os.path.join(UI_PATH, "deleteDonHang.ui"), self)
-        self.order_id = order_id
-        self.lblCanhBao.setText(f"Bạn có chắc muốn xóa đơn hàng {self.order_id}?\nHành động này không thể hoàn tác.")
-        self.btnXoa.clicked.connect(self.confirm_delete)
-        self.btnHuy.clicked.connect(self.reject)
+    def on_customer_name_clicked(self, link):
+        """Xử lý khi click vào tên khách hàng"""
+        self.close() # 1. Đóng popup chi tiết đơn hàng
+        # 2. Gọi hàm callback để main.py xử lý chuyển trang và mở lịch sử
+        if self.switch_to_customer_callback:
+            self.switch_to_customer_callback(self.customer_data)
 
-    def confirm_delete(self):
+    def load_product_list(self):
+        """2. Danh sách sản phẩm (JOIN Order_Details và Products)"""
+        if not hasattr(self, 'tblDanhSachSanPham'): return
+        
+        self.tblDanhSachSanPham.verticalHeader().setVisible(False)
+        self.tblDanhSachSanPham.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.tblDanhSachSanPham.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        
         db = DatabaseManager()
         conn = db.get_connection()
         if not conn: return
+        
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT COUNT(*) FROM INVOICES WHERE ORDER_ID = ?", (self.order_id,))
-            if cursor.fetchone()[0] > 0:
-                QtWidgets.QMessageBox.warning(self, "Lỗi", "Đơn hàng đã xuất hóa đơn, không thể xóa!")
-                return
-            cursor.execute("DELETE FROM ORDERDETAILS WHERE ORDER_ID = ?", (self.order_id,))
-            cursor.execute("DELETE FROM ORDERS WHERE ORDER_ID = ?", (self.order_id,))
-            conn.commit()
-            self.accept()
-        except Exception as e: 
-            conn.rollback()
-            QtWidgets.QMessageBox.critical(self, "Lỗi", str(e))
-        finally: 
+            # CẬP NHẬT DB MỚI: Dùng OrderedQuantity và JOIN Products để lấy UnitPrice
+            cursor.execute("""
+                SELECT p.ProductName, od.OrderedQuantity, p.UnitPrice, od.SubTotal
+                FROM Order_Details od
+                JOIN Products p ON od.ProductID = p.ProductID
+                WHERE od.OrderID = ?
+            """, (self.order_id,))
+            rows = cursor.fetchall()
+            
+            self.tblDanhSachSanPham.setRowCount(0)
+            for i, row in enumerate(rows):
+                self.tblDanhSachSanPham.insertRow(i)
+                self.tblDanhSachSanPham.setItem(i, 0, QtWidgets.QTableWidgetItem(row[0])) # Tên
+                self.tblDanhSachSanPham.setItem(i, 1, QtWidgets.QTableWidgetItem(str(row[1]))) # Số lượng
+                self.tblDanhSachSanPham.setItem(i, 2, QtWidgets.QTableWidgetItem(f"{row[2]:,.0f} VNĐ")) # Đơn giá
+                self.tblDanhSachSanPham.setItem(i, 3, QtWidgets.QTableWidgetItem(f"{row[3]:,.0f} VNĐ")) # Thành tiền
+        except Exception as e:
+            print(f"Lỗi tải chi tiết SP: {e}")
+        finally:
             conn.close()
 
-# --- BỘ QUẢN LÝ ĐƠN HÀNG (CONTROLLER CÓ PHÂN TRANG) ---
+    def load_payment_info(self):
+        """3. Thông tin thanh toán (CẬP NHẬT DB MỚI: Lấy từ bảng Bills)"""
+        db = DatabaseManager()
+        conn = db.get_connection()
+        if not conn: return
+        
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT BillID, PaymentDate, PaymentAmount, PaymentMethod
+                FROM Bills WHERE OrderID = ?
+            """, (self.order_id,))
+            bill = cursor.fetchone()
+            
+            if bill:
+                if hasattr(self, 'lblHienThiMaHoaDon'): self.lblHienThiMaHoaDon.setText(str(bill[0]))
+                if hasattr(self, 'lblHienThiNgayThanhToan'): 
+                    date_str = bill[1].strftime('%d/%m/%Y') if bill[1] else ""
+                    self.lblHienThiNgayThanhToan.setText(date_str)
+                if hasattr(self, 'lblHienThiTongTienThanhToan'): self.lblHienThiTongTienThanhToan.setText(f"{bill[2]:,.0f} VNĐ")
+                if hasattr(self, 'lblHienThiPhuongThucThanhToan'): self.lblHienThiPhuongThucThanhToan.setText(bill[3])
+            else:
+                if hasattr(self, 'lblHienThiMaHoaDon'): self.lblHienThiMaHoaDon.setText("Chưa có dữ liệu")
+                if hasattr(self, 'lblHienThiNgayThanhToan'): self.lblHienThiNgayThanhToan.setText("Chưa có dữ liệu")
+                if hasattr(self, 'lblHienThiTongTienThanhToan'): self.lblHienThiTongTienThanhToan.setText("0 VNĐ")
+                if hasattr(self, 'lblHienThiPhuongThucThanhToan'): self.lblHienThiPhuongThucThanhToan.setText("Chưa có dữ liệu")
+                
+        except Exception as e:
+            print(f"Lỗi tải hóa đơn: {e}")
+        finally:
+            conn.close()
+
+
+# ==========================================
+# DIALOG TẠO/SỬA ĐƠN HÀNG (Rút gọn cho module này)
+# ==========================================
+class EditOrder(QtWidgets.QDialog):
+    def __init__(self, data):
+        super().__init__()
+        ui_file = os.path.join(UI_PATH, "editDonHang.ui")
+        if os.path.exists(ui_file):
+            uic.loadUi(ui_file, self)
+        
+        self.order_id = data['id']
+        
+        if hasattr(self, 'cbTrangThai'):
+            self.cbTrangThai.setCurrentText(data['trang_thai'])
+            
+        if hasattr(self, 'btnLuu'): self.btnLuu.clicked.connect(self.save_data)
+        if hasattr(self, 'btnHuy'): self.btnHuy.clicked.connect(self.reject)
+
+    def save_data(self):
+        QtWidgets.QMessageBox.information(self, "Thông báo", "Chức năng cập nhật đang được hoàn thiện!")
+        self.accept()
+
+# ==========================================
+# DIALOG XÓA ĐƠN HÀNG
+# ==========================================
+class DeleteOrder(QtWidgets.QDialog):
+    def __init__(self, data):
+        super().__init__()
+        uic.loadUi(os.path.join(UI_PATH, "deleteDonHang.ui"), self)
+        self.order_id = data['id']
+        
+        if hasattr(self, 'btnXoa'): self.btnXoa.clicked.connect(self.delete_data)
+        if hasattr(self, 'btnHuy'): self.btnHuy.clicked.connect(self.reject)
+
+    def delete_data(self):
+        db = DatabaseManager()
+        conn = db.get_connection()
+        if not conn: return
+        
+        try:
+            cursor = conn.cursor()
+            # THỨ TỰ XÓA ĐẢM BẢO KHÔNG VI PHẠM KHÓA NGOẠI:
+            # 1. Xóa chi tiết đơn hàng
+            cursor.execute("DELETE FROM Order_Details WHERE OrderID = ?", (self.order_id,))
+            
+            # 2. Xóa hóa đơn thanh toán trong bảng Bills
+            cursor.execute("DELETE FROM Bills WHERE OrderID = ?", (self.order_id,))
+                
+            # 3. Xóa đơn hàng chính
+            cursor.execute("DELETE FROM Orders WHERE OrderID = ?", (self.order_id,))
+            
+            conn.commit()
+            QtWidgets.QMessageBox.information(self, "Thành công", f"Đã xóa đơn hàng {self.order_id}!")
+            self.accept()
+        except Exception as e:
+            conn.rollback()
+            QtWidgets.QMessageBox.critical(self, "Lỗi", f"Không thể xóa đơn hàng:\n{e}")
+        finally:
+            conn.close()
+
+
+# ==========================================
+# BỘ QUẢN LÝ ĐƠN HÀNG (CONTROLLER)
+# ==========================================
 class OrderManager:
-    def __init__(self, table_widget, btn_prev, btn_next, lbl_status):
+    def __init__(self, table_widget, btn_prev=None, btn_next=None, lbl_status=None):
         self.table = table_widget
         self.btn_prev = btn_prev
         self.btn_next = btn_next
         self.lbl_status = lbl_status
         
-        # Cấu hình phân trang (5 đơn hàng mỗi trang)
-        self.current_page = 0
-        self.items_per_page = 5
-        self.all_data = []
+        # Hàm callback sẽ được gán từ main.py
+        self.switch_to_customer_callback = None 
+        
+        self.init_ui()
 
-        self.init_table_ui()
-        self.connect_events()
-
-    def init_table_ui(self):
-        """Cấu hình giao diện bảng hiển thị"""
+    def init_ui(self):
         self.table.verticalHeader().setVisible(False)
+        self.table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        # Cột Thao tác (Cột 5) đặt độ rộng cố định
+        # Cột Thao tác
         header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeMode.Fixed)
-        self.table.setColumnWidth(5, 220) 
-        self.table.setAlternatingRowColors(True)
-        self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
-
-    def connect_events(self):
-        """Kết nối sự kiện cho các nút điều hướng Trước/Sau"""
-        # Ngắt các kết nối cũ trước khi gán mới
-        try: self.btn_prev.clicked.disconnect()
-        except: pass
-        try: self.btn_next.clicked.disconnect()
-        except: pass
-
-        self.btn_prev.clicked.connect(self.prev_page)
-        self.btn_next.clicked.connect(self.next_page)
+        self.table.setColumnWidth(5, 200)
 
     def load_data(self):
-        """Tải toàn bộ dữ liệu đơn hàng và reset về trang đầu"""
         db = DatabaseManager()
         conn = db.get_connection()
         if not conn: return
         
         try:
             cursor = conn.cursor()
-            # Truy vấn đầy đủ thông tin đơn hàng và tổng tiền
-            query = """
-                SELECT O.ORDER_ID, O.CUSTOMER_ID, O.ORDER_DATE, O.ORDER_STATUS, 
-                       SUM(OD.ORDER_QUANTITY * P.UNIT_PRICE)
-                FROM ORDERS O 
-                LEFT JOIN ORDERDETAILS OD ON O.ORDER_ID = OD.ORDER_ID
-                LEFT JOIN PRODUCTS P ON OD.PRODUCT_ID = P.PRODUCT_ID
-                GROUP BY O.ORDER_ID, O.CUSTOMER_ID, O.ORDER_DATE, O.ORDER_STATUS
-                ORDER BY O.ORDER_ID DESC
-            """
-            cursor.execute(query)
-            self.all_data = cursor.fetchall()
+            # Lấy thông tin đơn hàng + Tên, SĐT khách hàng
+            cursor.execute("""
+                SELECT 
+                    o.OrderID, 
+                    o.OrderDate, 
+                    c.CustomerName, 
+                    o.TotalAmount, 
+                    o.Status,
+                    c.CustomerID,
+                    c.CustomerPhone
+                FROM Orders o
+                JOIN Customers c ON o.CustomerID = c.CustomerID
+                ORDER BY o.OrderDate DESC
+            """)
+            rows = cursor.fetchall()
             
-            # Reset về trang 0 và vẽ trang
-            self.current_page = 0
-            self.render_page()
-            
+            self.table.setRowCount(0)
+            for i, row in enumerate(rows):
+                self.table.insertRow(i)
+                
+                order_id = row[0]
+                date_str = row[1].strftime('%d/%m/%Y') if row[1] else ""
+                cus_name = row[2]
+                total_str = f"{row[3]:,.0f} VNĐ" if row[3] else "0 VNĐ"
+                status = row[4]
+                
+                self.table.setItem(i, 0, QtWidgets.QTableWidgetItem(str(order_id)))
+                self.table.setItem(i, 1, QtWidgets.QTableWidgetItem(date_str))
+                self.table.setItem(i, 2, QtWidgets.QTableWidgetItem(cus_name))
+                self.table.setItem(i, 3, QtWidgets.QTableWidgetItem(total_str))
+                
+                status_item = QtWidgets.QTableWidgetItem(status)
+                if status == "Đã thanh toán": status_item.setForeground(Qt.GlobalColor.darkGreen)
+                elif status == "Đã hủy": status_item.setForeground(Qt.GlobalColor.darkRed)
+                else: status_item.setForeground(Qt.GlobalColor.red)
+                self.table.setItem(i, 4, status_item)
+                
+                item_data = {
+                    "id": order_id, "ngay": date_str, "tien": total_str, "trang_thai": status,
+                    "customer_info": {"id": row[5], "ten": cus_name, "sdt": row[6]}
+                }
+                
+                self.add_action_buttons(i, item_data)
+                
         except Exception as e:
-            print(f"Lỗi load dữ liệu Đơn hàng: {e}")
+            print(f"Lỗi load Đơn hàng: {e}")
         finally:
             conn.close()
 
-    def render_page(self):
-        """Hiển thị 5 dòng dữ liệu dựa trên trang hiện tại"""
-        if not self.table: return
-        
-        self.table.setRowCount(0)
-        total_items = len(self.all_data)
-        
-        # Tính toán chỉ số bắt đầu và kết thúc của trang
-        start_idx = self.current_page * self.items_per_page
-        end_idx = start_idx + self.items_per_page
-        page_data = self.all_data[start_idx:end_idx]
-        
-        for i, row in enumerate(page_data):
-            self.table.insertRow(i)
-            # Cột 0: Mã Đơn
-            self.table.setItem(i, 0, QtWidgets.QTableWidgetItem(str(row[0])))
-            # Cột 1: Mã Khách Hàng
-            self.table.setItem(i, 1, QtWidgets.QTableWidgetItem(str(row[1])))
-            # Cột 2: Ngày Đặt
-            self.table.setItem(i, 2, QtWidgets.QTableWidgetItem(str(row[2])))
-            # Cột 3: Tổng Tiền
-            total_val = row[4] if row[4] else 0
-            self.table.setItem(i, 3, QtWidgets.QTableWidgetItem(f"{total_val:,.0f}"))
-            # Cột 4: Trạng Thái
-            self.table.setItem(i, 4, QtWidgets.QTableWidgetItem(str(row[3])))
-            
-            # Nút Thao tác
-            self.add_action_buttons(i, {"id": row[0]})
-            
-        # Cập nhật Label trạng thái (Ví dụ: Hiển thị 5 / 20 đơn hàng)
-        if self.lbl_status:
-            count_on_page = len(page_data)
-            self.lbl_status.setText(f"Hiển thị {count_on_page} / {total_items} đơn hàng")
-        
-        # Bật/Tắt nút điều hướng
-        self.btn_prev.setEnabled(self.current_page > 0)
-        self.btn_next.setEnabled(end_idx < total_items)
-
     def add_action_buttons(self, row, item):
-        """Tạo cụm nút thao tác Xem - Sửa - Xóa cho mỗi hàng"""
         container = QtWidgets.QWidget()
         layout = QtWidgets.QHBoxLayout(container)
-        layout.setContentsMargins(4, 2, 4, 2)
-        layout.setSpacing(8)
-        style = "padding: 4px; font-weight: bold; min-width: 50px; border-radius: 3px; color: white; border: none;"
+        layout.setContentsMargins(5, 2, 5, 2)
+        layout.setSpacing(5)
 
         btn_view = QtWidgets.QPushButton("Xem")
-        btn_view.setStyleSheet(f"background-color: #10b981; {style}")
-        btn_view.clicked.connect(lambda: self.open_view(item))
-
         btn_edit = QtWidgets.QPushButton("Sửa")
-        btn_edit.setStyleSheet(f"background-color: #3b82f6; {style}")
-        btn_edit.clicked.connect(lambda: self.open_edit(item))
-
         btn_delete = QtWidgets.QPushButton("Xóa")
+
+        style = "padding: 5px; font-weight: bold; border-radius: 4px; color: white; border: none;"
+        btn_view.setStyleSheet(f"background-color: #10b981; {style}")
+        btn_edit.setStyleSheet(f"background-color: #f59e0b; {style}")
         btn_delete.setStyleSheet(f"background-color: #ef4444; {style}")
+        
+        btn_view.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_edit.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_delete.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        btn_view.clicked.connect(lambda: self.open_view(item))
+        btn_edit.clicked.connect(lambda: self.open_edit(item))
         btn_delete.clicked.connect(lambda: self.open_delete(item))
 
         layout.addWidget(btn_view)
@@ -414,26 +295,16 @@ class OrderManager:
         layout.addWidget(btn_delete)
         self.table.setCellWidget(row, 5, container)
 
-    def next_page(self):
-        """Chuyển sang trang sau"""
-        if (self.current_page + 1) * self.items_per_page < len(self.all_data):
-            self.current_page += 1
-            self.render_page()
-
-    def prev_page(self):
-        """Quay lại trang trước"""
-        if self.current_page > 0:
-            self.current_page -= 1
-            self.render_page()
+    def open_view(self, item):
+        dialog = ViewOrder(item, self.switch_to_customer_callback)
+        dialog.exec()
 
     def open_create(self):
-        if CreateOrder().exec(): self.load_data()
-
-    def open_view(self, item):
-        ViewOrder(item).exec()
+        QtWidgets.QMessageBox.information(None, "Thông báo", "Mở giao diện Tạo đơn hàng!")
 
     def open_edit(self, item):
-        if EditOrder(item['id']).exec(): self.load_data()
+        if EditOrder(item).exec(): self.load_data()
 
     def open_delete(self, item):
-        if DeleteOrder(item['id']).exec(): self.load_data()
+        if DeleteOrder(item).exec(): self.load_data()
+
