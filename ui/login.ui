@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>450</width>
+    <height>350</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* 1. Tổng thể Cửa sổ [cite: 292-293] */
+QDialog {
+    background-color: #f3f4f6;
+    font-family: &quot;Inter&quot;, &quot;Segoe UI&quot;, sans-serif;
+}
+
+/* 2. Tiêu đề hệ thống (lblTenDeTai) [cite: 31, 331-332] */
+QLabel#lblTenDeTai {
+    font-size: 20px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 10px;
+}
+
+/* 3. Thẻ chứa thông tin đăng nhập (Card) [cite: 298] */
+QFrame#frame {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+/* 4. Tiêu đề khối (lblThongTinDangNhap) [cite: 299] */
+QLabel#lblThongTinDangNhap {
+    font-size: 15px;
+    font-weight: 600;
+    color: #4b5563;
+    padding-bottom: 5px;
+}
+
+/* 5. Ô nhập liệu (Username &amp; Password) [cite: 336-339, 497] */
+QLineEdit {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #111827;
+}
+
+QLineEdit:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* 6. Nút Đăng nhập (btnDangNhap) [cite: 302-303, 342] */
+QPushButton#btnDangNhap {
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 10px 24px;
+    /* Xử lý kích thước nút qua QSS */
+    min-width: 120px;
+    max-width: 160px;
+}
+
+QPushButton#btnDangNhap:hover {
+    background-color: #1d4ed8;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <widget class="QLabel" name="lblTenDeTai">
+     <property name="text">
+      <string>Hệ thống quản lý cửa hàng bán lẻ</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="lblThongTinDangNhap">
+        <property name="text">
+         <string>Thông tin đăng nhập</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="txtTenDangNhap">
+        <property name="placeholderText">
+         <string>Tên đăng nhập</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="txtMatKhau">
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+        <property name="placeholderText">
+         <string>Mật khẩu</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnDangNhap">
+       <property name="text">
+        <string>Đăng nhập</string>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

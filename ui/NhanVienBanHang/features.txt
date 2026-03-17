@@ -1,0 +1,5 @@
+- Danh mục
+- Đơn hàng
+- Khách hàng
+- Khuyến mãi
+- Sản phẩm

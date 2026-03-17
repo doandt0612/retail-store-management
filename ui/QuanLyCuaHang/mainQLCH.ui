@@ -1,0 +1,2559 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>910</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* CẤP 1: Tiêu đề trang chính */
+QLabel#lblTitleQuanLySP, QLabel#lblTitleQuanLyDH, QLabel#lblTitleQuanLyKhoHang {
+    font-size: 24px;
+    font-weight: 700; /* Bold */
+    color: #111827;
+}
+
+/* CẤP 2: Tiêu đề cột của bảng và các nút Sidebar */
+QHeaderView::section {
+    font-weight: 600;           /* Semi-bold [cite: 93] */
+    text-transform: uppercase;  /* BUỘC IN HOA TIÊU ĐỀ CỘT */
+    letter-spacing: 0.5px;      /* Thêm chút khoảng cách chữ cho dễ đọc  */
+}
+
+/* CẤP 3: Tiêu đề ứng dụng (Hệ thống quản lý...) */
+QLabel#lblTenDeTai {
+    font-size: 18px;
+    font-weight: 600; /* Semi-bold giúp nó nổi bật nhưng không bằng tiêu đề trang */
+    color: #111827;
+    padding-left: 20px;
+}
+
+/* CẤP 4: Thông tin phụ (Subtitles) */
+QLabel#lblHienThiDH, QLabel#lblHienThiSP {
+    font-weight: 400; /* Regular */
+    color: #6b7280;   /* Màu xám giúp tạo độ nhạt ảo */
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">/* Áp dụng cho toàn bộ ứng dụng */
+QWidget {
+    font-family: &quot;Inter&quot;, &quot;Segoe UI&quot;, &quot;Arial&quot;, sans-serif;
+    font-size: 13px; /* Kích thước chữ tiêu chuẩn cho nội dung */
+    color: #374151; /* Màu xám đậm chuyên nghiệp của Figma */
+}
+
+/* Riêng các tiêu đề lớn */
+QLabel#lblTitleQuanLySP, 
+QLabel#lblTitleQuanLyDH, 
+QLabel#lblTitleQuanLyKhoHang {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+}</string>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_12">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="fr_sidebar">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>180</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>180</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QFrame { background-color: #1e3a8a; border: none; }
+QPushButton { 
+    color: white; 
+    text-align: left; 
+    padding: 10px; 
+    border: none; 
+    font-size: 14px; 
+    font-weight: bold;
+}
+QPushButton:hover { background-color: #3b82f6; border-radius: 5px; }</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QPushButton" name="btnTongQuan">
+         <property name="text">
+          <string>Tổng quan</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDonHang">
+         <property name="text">
+          <string>Đơn hàng</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnKhachHang">
+         <property name="text">
+          <string>Khách hàng</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDanhMuc">
+         <property name="text">
+          <string>Danh mục</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnSanPham">
+         <property name="text">
+          <string>Sản phẩm</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNhaCungCap">
+         <property name="text">
+          <string>Nhà cung cấp</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNhapHang">
+         <property name="text">
+          <string>Nhập hàng</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnKhuyenMai">
+         <property name="text">
+          <string>Khuyến mãi</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNhanVien">
+         <property name="text">
+          <string>Nhân viên</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDangXuat">
+         <property name="text">
+          <string>Đăng xuất</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="frMainContent">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="frHeaderName">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">/* Tổng thể Header */
+QFrame#frHeaderName {
+    background-color: white;
+}
+
+/* Chỉnh dòng chữ tiêu đề chính */
+QLabel#lblTenDeTai {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1a1a1a;
+    border: none;
+}
+
+</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>14</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="lblTenDeTai">
+            <property name="styleSheet">
+             <string notr="true">QLabel#lblTenDeTai {
+    font-size: 18px;       /* Tăng kích thước chữ */
+    font-weight: semi-bold;     /* In đậm */
+    color: #111827;        /* Màu đen tuyền nổi bật */
+    padding-bottom: 5px;
+}</string>
+            </property>
+            <property name="text">
+             <string>Hệ thống quản lý cửa hàng bán lẻ</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QStackedWidget" name="stackedWidget">
+         <property name="styleSheet">
+          <string notr="true">/* Nền xám nhạt cho toàn trang */
+QWidget {
+    background-color: #f8f9fa;
+}</string>
+         </property>
+         <property name="currentIndex">
+          <number>1</number>
+         </property>
+         <widget class="QWidget" name="pageTongQuan">
+          <property name="styleSheet">
+           <string notr="true">/* 1. Nền toàn trang */
+QWidget#pageTongQuan {
+    background-color: #f3f4f6;
+}
+
+/* Tiêu đề trang */
+QLabel#lblTitleDashboards {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+}
+
+/* Kiểu dáng bảng trắng tinh khôi */
+QTableWidget#tblDonHangGanDay {
+    background-color: white;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+}
+
+QHeaderView::section {
+    background-color: white;
+    padding: 15px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #374151;
+}
+
+/* 2. Các tiêu đề khối con (Doanh thu, Top SP, Đơn hàng gần đây) */
+QLabel#lblDoanhThuTheoNgay, 
+QLabel#lblSPBanChay, 
+QLabel#lblDonHangGanDay {
+    font-size: 16px;
+    font-weight: 600; /* Bold - Giúp người dùng phân tách các khu vực chức năng nhanh hơn [cite: 294, 298, 302] */
+    color: #111827;   /* Đồng bộ màu đen với tiêu đề chính để nhìn chuyên nghiệp [cite: 281] */
+    margin-bottom: 5px;
+}
+
+/* 4. Thẻ nội dung (Cards) [cite: 157, 198] */
+QFrame#frChartDoanhThu, 
+QFrame#frChartSP, 
+QFrame#frame_3 {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+/* 5. CẤP 3: Tiêu đề cột của bảng (Semi-bold)  */
+QHeaderView::section {
+    background-color: #ffffff;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: 600; /* Semi-bold giống các trang khác */
+    color: #4b5563;  /* Màu xám đậm chuyên nghiệp */
+    text-transform: uppercase;
+    font-size: 11px;
+}
+
+/* 6. CẤP 4: Chữ trong bảng (Regular/Medium) [cite: 161, 253] */
+QTableWidget#tblDonHangGanDay {
+    background-color: transparent;
+    border: none;
+    color: #374151; /* Màu chữ nội dung tiêu chuẩn */
+    font-weight: 400; /* Trở về độ mảnh bình thường */
+}
+
+/* Hiệu ứng khi chọn dòng [cite: 288-289] */
+QTableWidget#tblDonHangGanDay::item:selected {
+    background-color: #eff6ff;
+    color: #2563eb;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_20">
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <property name="leftMargin">
+            <number>20</number>
+           </property>
+           <property name="topMargin">
+            <number>20</number>
+           </property>
+           <property name="rightMargin">
+            <number>20</number>
+           </property>
+           <property name="bottomMargin">
+            <number>20</number>
+           </property>
+           <item>
+            <widget class="QFrame" name="frame">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblTitleDashboards">
+                <property name="text">
+                 <string>Dashboards</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_15">
+               <item>
+                <widget class="QLabel" name="lblDoanhThuTheoNgay">
+                 <property name="text">
+                  <string>Doanh thu theo ngày</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frChartDoanhThu">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_5"/>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_11">
+               <item>
+                <widget class="QLabel" name="lblSPBanChay">
+                 <property name="text">
+                  <string>Top sản phẩm bán chạy</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frChartSP">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_10"/>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QFrame" name="frame_3">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_19">
+              <item>
+               <widget class="QLabel" name="lblDonHangGanDay">
+                <property name="text">
+                 <string>Đơn hàng gần đây</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QTableWidget" name="tblDonHangGanDay">
+                <column>
+                 <property name="text">
+                  <string>Mã đơn</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Tên KH</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Ngày đặt hàng</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Tổng tiền</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Trạng thái</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Thao tác</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="pageDonHang">
+          <property name="styleSheet">
+           <string notr="true">/* Tiêu đề trang */
+QLabel#lblTitleQuanLyDH {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+}
+
+/* Nút Thêm sản phẩm màu xanh dương nổi bật */
+QPushButton#btnTaoDonHang {
+    background-color: #2563eb;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+
+/* Kiểu dáng bảng trắng tinh khôi */
+QTableWidget#tblDonHang {
+    background-color: white;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+}
+
+QHeaderView::section {
+    background-color: white;
+    padding: 15px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #374151;
+}
+
+/* 3. KHỐI TÌM KIẾM (frTimKiem) - Thiết kế dạng Card mỏng [cite: 331, 287, 456] */
+QFrame#frTimKiem {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* Ô nhập liệu tìm kiếm [cite: 396-402] */
+QLineEdit#txtTimKiemDonHang {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+    min-width: 250px;
+}
+
+QLineEdit#txtTimKiemDonHang:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* Bộ lọc Trạng thái (ComboBox) [cite: 403-411] */
+QComboBox#cbLocTrangThai {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 5px 15px;
+    color: #4b5563;
+    min-width: 150px;
+}
+
+QComboBox#cbLocTrangThai::drop-down {
+    border: none;
+    width: 30px;
+}
+
+QComboBox#cbLocTrangThai::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #6b7280;
+    margin-right: 10px;
+}
+
+/* Nút Tìm kiếm [cite: 162, 336] */
+QPushButton#btnTimKiemDonHang {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 7px 15px;
+    font-weight: 600;
+}
+
+QPushButton#btnTimKiemDonHang:hover {
+    background-color: #e5e7eb;
+}
+
+/* Áp dụng cho ô chọn ngày tháng */
+QDateEdit {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px; /* Bo góc 8px chuẩn hệ thống [cite: 282, 287] */
+    padding: 6px 10px;
+    color: #4b5563; /* Màu xám đậm chuyên nghiệp [cite: 290] */
+    min-width: 120px;
+}
+
+QDateEdit:focus {
+    border: 2px solid #2563eb; /* Xanh dương khi chọn [cite: 294] */
+    background-color: #ffffff;
+}
+
+/* Tùy chỉnh nút mũi tên lịch */
+QDateEdit::drop-down {
+    border: none;
+    width: 25px;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_17">
+           <item>
+            <widget class="QFrame" name="frTitleDH">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <property name="spacing">
+               <number>6</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>9</number>
+              </property>
+              <property name="bottomMargin">
+               <number>9</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblTitleQuanLyDH">
+                <property name="text">
+                 <string>Quản lý đơn hàng</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_10">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>224</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTaoDonHang">
+                <property name="text">
+                 <string>+    Tạo đơn hàng</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frTimKiem">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_8">
+              <item>
+               <widget class="QLineEdit" name="txtTimKiemDonHang">
+                <property name="placeholderText">
+                 <string>Nhập mã đơn hàng...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDateEdit" name="deLocNgay"/>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cbLocTrangThai"/>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>140</width>
+                  <height>13</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTimKiemDonHang">
+                <property name="text">
+                 <string>Tìm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frDonHang">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <widget class="QTableWidget" name="tblDonHang">
+                <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
+                <property name="showGrid">
+                 <bool>false</bool>
+                </property>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Mã đơn </string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Tên KH</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Ngày đặt hàng</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Tổng tiền</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Trạng thái</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Thao tác</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="pageKhachHang">
+          <property name="styleSheet">
+           <string notr="true">/* Tiêu đề trang */
+QLabel#lblTitleQuanLyKH {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+}
+
+/* Nút Thêm nhà cung cấp màu xanh dương */
+QPushButton#btnThemKH {
+    background-color: #2563eb;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+QPushButton#btnThemKH:hover {
+    background-color: #1d4ed8;
+}
+
+/* Kiểu dáng bảng sạch sẽ như Figma */
+QTableWidget#tblDanhSachKH {
+    background-color: white;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+}
+
+QHeaderView::section {
+    background-color: white;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #4b5563;
+    text-align: left;
+}
+
+/* 3. KHỐI TÌM KIẾM (frTimKiem) - Thiết kế dạng Card mỏng [cite: 331, 287, 456] */
+QFrame#frTimKiem {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* Ô nhập liệu tìm kiếm [cite: 396-402] */
+QLineEdit#txtTimKiemKH {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+    min-width: 250px;
+}
+
+QLineEdit#txtTimKiemKH:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* Nút Tìm kiếm [cite: 162, 336] */
+QPushButton#btnTimKiemKH {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 7px 15px;
+    font-weight: 600;
+}
+
+QPushButton#btnTimKiemKH:hover {
+    background-color: #e5e7eb;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_18">
+           <item>
+            <widget class="QFrame" name="frQuanLyKhachHang">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_10">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblTitleQuanLyKH">
+                <property name="text">
+                 <string>Quản lý khách hàng</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_8">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>115</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnThemKH">
+                <property name="text">
+                 <string>+   Thêm khách hàng</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frTimKiem_2">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_11">
+              <item>
+               <widget class="QLineEdit" name="txtTimKiemKH">
+                <property name="placeholderText">
+                 <string>Nhập số điện thoại khách hàng...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>308</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTimKiemKH">
+                <property name="text">
+                 <string>Tìm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tblDanhSachKH">
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <property name="showGrid">
+              <bool>false</bool>
+             </property>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string>Mã KH</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Tên KH</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>SĐT</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Tổng chi tiêu</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Thao tác</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="pageDanhMuc">
+          <property name="styleSheet">
+           <string notr="true">/* Tiêu đề chính */
+QLabel#lblTitleQuanLyDanhMuc {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+}
+
+/* Nút Thêm danh mục màu xanh dương */
+QPushButton#btnThemDanhMuc {
+    background-color: #2563eb;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+QPushButton#btnThemDanhMuc:hover {
+    background-color: #1d4ed8;
+}
+
+/* Kiểu dáng bảng sạch sẽ như Figma */
+QTableWidget#tblDanhMuc {
+    background-color: white;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+    outline: none;
+}
+
+QHeaderView::section {
+    background-color: white;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #4b5563;
+    text-align: left;
+}
+
+/* 3. KHỐI TÌM KIẾM (frTimKiem) - Thiết kế dạng Card mỏng [cite: 331, 287, 456] */
+QFrame#frTimKiem {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* Ô nhập liệu tìm kiếm [cite: 396-402] */
+QLineEdit#txtTimKiemDanhMuc {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+    min-width: 250px;
+}
+
+QLineEdit#txtTimKiemDanhMuc:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* Nút Tìm kiếm [cite: 162, 336] */
+QPushButton#btnTimKiemDanhMuc {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 7px 15px;
+    font-weight: 600;
+}
+
+QPushButton#btnTimKiemDanhMuc:hover {
+    background-color: #e5e7eb;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_14">
+           <item>
+            <widget class="QFrame" name="frDanhMuc">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblTitleQuanLyDanhMuc">
+                <property name="text">
+                 <string>Quản lý danh mục</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>146</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnThemDanhMuc">
+                <property name="text">
+                 <string>+    Thêm danh mục</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frTimKiem_3">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_14">
+              <item>
+               <widget class="QLineEdit" name="txtTimKiemDanhMuc">
+                <property name="placeholderText">
+                 <string>Nhập tên danh mục...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTimKiemDanhMuc">
+                <property name="text">
+                 <string>Tìm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tblDanhMuc">
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <property name="showGrid">
+              <bool>false</bool>
+             </property>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string>Mã danh mục </string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Tên danh mục</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Mô tả</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Số sản phẩm</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Thao tác</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="pageSanPham">
+          <property name="styleSheet">
+           <string notr="true">/* Tiêu đề trang */
+QLabel#lblTitleQuanLySP {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+}
+
+/* Nút Thêm sản phẩm màu xanh dương nổi bật */
+QPushButton#btnThemSP {
+    background-color: #2563eb;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+QPushButton#btnThemSP:hover {
+    background-color: #1d4ed8;
+}
+
+/* Kiểu dáng cho các ô lọc ComboBox */
+QComboBox {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 5px;
+    background-color: #f9fafb;
+}
+
+/* Kiểu dáng Bảng sản phẩm sạch sẽ */
+QTableWidget#tblDanhSachSP{
+    background-color: white;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+}
+
+QHeaderView::section {
+    background-color: white;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #4b5563;
+}
+
+/* Nút phân trang xanh dương */
+QPushButton#btnSau_2 {
+    background-color: #2563eb;
+    color: white;
+    border-radius: 6px;
+    padding: 5px 12px;
+}
+
+QPushButton#btnTruoc_2 {
+    background-color: #2563eb;
+    color: white;
+    border-radius: 6px;
+    padding: 5px 12px;
+}
+
+/* --- Ô TÌM KIẾM SẢN PHẨM --- */
+QLineEdit {
+    background-color: #f9fafb; /* Màu nền xám cực nhạt */
+    border: 1px solid #e5e7eb; /* Viền xám mảnh */
+    border-radius: 8px;        /* Bo góc 8px như Figma */
+    padding: 8px 12px;         /* Khoảng cách chữ với viền */
+    color: #111827;            /* Màu chữ đen đậm */
+    font-size: 11px;
+}
+
+QLineEdit:focus {
+    border: 2px solid #2563eb; /* Viền xanh dương khi click vào */
+    background-color: white;   /* Đổi nền trắng khi nhập liệu */
+}
+
+/* --- 2 COMBO BOX (DANH MỤC &amp; NHÀ CUNG CẤP) --- */
+QComboBox {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 5px 15px;
+    min-height: 13px;
+    color: #4b5563;
+}
+
+QComboBox:hover {
+    background-color: #f3f4f6; /* Đậm hơn một chút khi di chuột qua */
+    border: 1px solid #d1d5db;
+}
+
+QComboBox::drop-down {
+    border: none; /* Xóa viền của nút mũi tên */
+    width: 30px;
+}
+
+/* Tùy chỉnh mũi tên xuống cho chuyên nghiệp */
+QComboBox::down-arrow {
+    image: none; /* Xóa icon mặc định */
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #6b7280; /* Vẽ mũi tên tam giác màu xám */
+    margin-right: 10px;
+}
+
+/* Kiểu dáng cho danh sách hiện ra khi click vào */
+QComboBox QAbstractItemView {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: white;
+    selection-background-color: #eff6ff; /* Màu xanh nhạt khi chọn dòng */
+    selection-color: #2563eb;
+    outline: none;
+    padding: 5px;
+}
+
+/* 3. KHỐI TÌM KIẾM (frTimKiem) - Thiết kế dạng Card mỏng [cite: 331, 287, 456] */
+QFrame#frTimKiem {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* Ô nhập liệu tìm kiếm [cite: 396-402] */
+QLineEdit#txtTimKiemSP {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+    min-width: 250px;
+}
+
+QLineEdit#txtTimKiemSP:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* Nút Tìm kiếm [cite: 162, 336] */
+QPushButton#btnTimKiemSP {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 7px 15px;
+    font-weight: 600;
+}
+
+QPushButton#btnTimKiemSP:hover {
+    background-color: #e5e7eb;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_13">
+           <item>
+            <widget class="QFrame" name="frTitleSP">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_7">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblTitleQuanLySP">
+                <property name="text">
+                 <string>Quản lý sản phẩm</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_5">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>148</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnThemSP">
+                <property name="text">
+                 <string>+    Thêm sản phẩm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frTimKiem_4">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_15">
+              <item>
+               <widget class="QLineEdit" name="txtTimKiemSP">
+                <property name="placeholderText">
+                 <string>Nhập tên sản phẩm...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_11">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTimKiemSP">
+                <property name="text">
+                 <string>Tìm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frSanPham">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_12">
+              <item>
+               <widget class="QFrame" name="frPhanTrangSP">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QTableWidget" name="tblDanhSachSP">
+                   <property name="alternatingRowColors">
+                    <bool>true</bool>
+                   </property>
+                   <property name="selectionBehavior">
+                    <enum>QAbstractItemView::SelectRows</enum>
+                   </property>
+                   <property name="showGrid">
+                    <bool>false</bool>
+                   </property>
+                   <attribute name="horizontalHeaderStretchLastSection">
+                    <bool>true</bool>
+                   </attribute>
+                   <column>
+                    <property name="text">
+                     <string>Mã SP</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Tên SP</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Danh mục</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Đơn giá</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Nhà cung cấp</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Số lượng tồn kho</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Thao tác</string>
+                    </property>
+                   </column>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="pageNhaCungCap">
+          <property name="styleSheet">
+           <string notr="true">/* Tiêu đề trang */
+QLabel#lblTitleQuanLyNCC {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+}
+
+/* Nút Thêm nhà cung cấp màu xanh dương */
+QPushButton#btnThemNCC {
+    background-color: #2563eb;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+QPushButton#btnThemNCC:hover {
+    background-color: #1d4ed8;
+}
+
+/* Kiểu dáng bảng sạch sẽ như Figma */
+QTableWidget#tblDanhSachNCC {
+    background-color: white;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+}
+
+QHeaderView::section {
+    background-color: white;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #4b5563;
+    text-align: left;
+}
+
+/* 3. KHỐI TÌM KIẾM (frTimKiem) - Thiết kế dạng Card mỏng [cite: 331, 287, 456] */
+QFrame#frTimKiem {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* Ô nhập liệu tìm kiếm [cite: 396-402] */
+QLineEdit#txtTimKiemNCC {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+    min-width: 250px;
+}
+
+QLineEdit#txtTimKiemNCC:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* Nút Tìm kiếm [cite: 162, 336] */
+QPushButton#btnTimKiemNCC {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 7px 15px;
+    font-weight: 600;
+}
+
+QPushButton#btnTimKiemNCC:hover {
+    background-color: #e5e7eb;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_16">
+           <item>
+            <widget class="QFrame" name="frNCC">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_9">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblTitleQuanLyNCC">
+                <property name="text">
+                 <string>Quản lý nhà cung cấp</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_7">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>86</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnThemNCC">
+                <property name="text">
+                 <string>+    Thêm nhà cung cấp</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frTimKiem_5">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_16">
+              <item>
+               <widget class="QLineEdit" name="txtTimKiemNCC">
+                <property name="placeholderText">
+                 <string>Nhập số điện thoại nhà cung cấp...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_13">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTimKiemNCC">
+                <property name="text">
+                 <string>Tìm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tblDanhSachNCC">
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <property name="showGrid">
+              <bool>false</bool>
+             </property>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string>Mã NCC</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Tên NCC</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>SĐT</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Email</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Địa chỉ</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Số lượng sản phẩm</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Thao tác</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="pageNhapHang">
+          <property name="styleSheet">
+           <string notr="true">/* 1. Thiết lập nền cho trang */
+QWidget#pageNhapHang {
+    background-color: #f8f9fa; /* Màu xám cực nhạt giúp thẻ trắng nổi bật [cite: 98-99] */
+}
+
+/* 2. Tiêu đề trang */
+QLabel#lblTitleQuanLyNhapHang {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827; /* Đen tuyền chuyên nghiệp [cite: 114-115, 170] */
+}
+
+/* 3. Thẻ chứa bảng (Frame) */
+QFrame#frNhapHang {
+    background-color: #ffffff;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px; /* Bo góc đồng bộ với trang Sản phẩm và Đơn hàng [cite: 117, 174, 232] */
+}
+
+/* 4. Tùy chỉnh Bảng Hóa đơn */
+QTableWidget#tblDanhSachNhapHang {
+    background-color: white;
+    border: none;
+    gridline-color: transparent; /* Ẩn lưới để trông sạch sẽ [cite: 108, 133, 210] */
+    outline: none;
+}
+
+/* Tiêu đề cột (Headers) */
+QHeaderView::section {
+    background-color: white;
+    padding: 15px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #4b5563; /* Màu xám đậm chuyên nghiệp [cite: 118, 175, 233] */
+    text-transform: uppercase; /* BUỘC IN HOA TIÊU ĐỀ CỘT [cite: 67-68] */
+    letter-spacing: 0.5px;
+}
+
+/* Nút Thêm nhà cung cấp màu xanh dương */
+QPushButton#btnThemDonNhapHang {
+    background-color: #2563eb;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+QPushButton#btnThemDonNhapHang:hover {
+    background-color: #1d4ed8;
+}
+
+/* 3. KHỐI TÌM KIẾM (frTimKiem) - Thiết kế dạng Card mỏng [cite: 331, 287, 456] */
+QFrame#frTimKiem {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* Ô nhập liệu tìm kiếm [cite: 396-402] */
+QLineEdit#txtTimKiemDonNhap {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+    min-width: 250px;
+}
+
+QLineEdit#txtTimKiemDonNhap:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* Bộ lọc Trạng thái (ComboBox) [cite: 403-411] */
+QComboBox#cbLocNCC {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 5px 15px;
+    color: #4b5563;
+    min-width: 150px;
+}
+
+QComboBox#cbLocNCC::drop-down {
+    border: none;
+    width: 30px;
+}
+
+QComboBox#cbLocNCC::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #6b7280;
+    margin-right: 10px;
+}
+
+/* Nút Tìm kiếm [cite: 162, 336] */
+QPushButton#btnTimKiemDonNhap {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 7px 15px;
+    font-weight: 600;
+}
+
+QPushButton#btnTimKiemDonHang:hover {
+    background-color: #e5e7eb;
+}
+
+/* Áp dụng cho ô chọn ngày tháng */
+QDateEdit {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px; /* Bo góc 8px chuẩn hệ thống [cite: 282, 287] */
+    padding: 6px 10px;
+    color: #4b5563; /* Màu xám đậm chuyên nghiệp [cite: 290] */
+    min-width: 120px;
+}
+
+QDateEdit:focus {
+    border: 2px solid #2563eb; /* Xanh dương khi chọn [cite: 294] */
+    background-color: #ffffff;
+}
+
+/* Tùy chỉnh nút mũi tên lịch */
+QDateEdit::drop-down {
+    border: none;
+    width: 25px;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
+            <widget class="QFrame" name="frTitleNhapHang">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_13">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblTitleQuanLyNhapHang">
+                <property name="text">
+                 <string>Quản lý đơn nhập hàng</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_12">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>388</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnThemDonNhapHang">
+                <property name="text">
+                 <string>+    Thêm đơn nhập hàng</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frTimKiem_6">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_17">
+              <item>
+               <widget class="QLineEdit" name="txtTimKiemDonNhap">
+                <property name="placeholderText">
+                 <string>Nhập mã đơn nhập hàng...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDateEdit" name="deLocNgay_2"/>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cbLocNCC"/>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_14">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>140</width>
+                  <height>13</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTimKiemDonNhap">
+                <property name="text">
+                 <string>Tìm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frNhapHang">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <item>
+               <widget class="QTableWidget" name="tblDanhSachNhapHang">
+                <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
+                <property name="showGrid">
+                 <bool>false</bool>
+                </property>
+                <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+                 <bool>false</bool>
+                </attribute>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Mã đơn nhập</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Ngày nhập</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Nhà cung cấp</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Tổng tiền</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Trạng thái</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Thao tác</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="pageKhuyenMai">
+          <property name="styleSheet">
+           <string notr="true">/* 1. Thiết lập nền xám nhạt cho toàn trang [cite: 98-99] */
+QWidget#pageTaiKhoan {
+    background-color: #f8f9fa;
+}
+
+/* 2. Tiêu đề trang (Quản lý tài khoản) [cite: 64-65, 114-115, 170] */
+QLabel#lblTitleQuanLyKM {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+}
+
+/* 3. Nút Thêm tài khoản (+ Thêm tài khoản) [cite: 116, 171, 230, 249, 319] */
+QPushButton#btnTaoKM {
+    background-color: #2563eb; /* Màu xanh dương thương hiệu */
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 20px;
+}
+
+QPushButton#btnTaoKM:hover {
+    background-color: #1d4ed8; /* Đậm hơn khi di chuột qua [cite: 172, 230, 250] */
+}
+
+/* 4. Kiểu dáng Bảng Danh sách tài khoản (Card UI) [cite: 101-102, 117, 174, 231-232, 251] */
+QTableWidget#tblDanhSachKM {
+    background-color: white;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+    gridline-color: transparent; /* Ẩn lưới để bảng sạch sẽ như Figma [cite: 133, 210, 243] */
+    outline: none;
+}
+
+/* Tiêu đề cột (Headers) - BUỘC IN HOA [cite: 66-69, 118, 175, 233, 252] */
+QHeaderView::section {
+    background-color: white;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #4b5563;
+    text-align: left;
+}
+
+/* Hiệu ứng khi chọn dòng trong bảng [cite: 192-193] */
+QTableWidget#tblDanhSachKM::item:selected {
+    background-color: #eff6ff; /* Xanh nhạt tinh tế */
+    color: #2563eb;
+}
+
+/* 3. KHỐI TÌM KIẾM (frTimKiem) - Thiết kế dạng Card mỏng [cite: 331, 287, 456] */
+QFrame#frTimKiem {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* Ô nhập liệu tìm kiếm [cite: 396-402] */
+QLineEdit#txtTimKiemKM {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+    min-width: 250px;
+}
+
+QLineEdit#txtTimKiemKM:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* Nút Tìm kiếm [cite: 162, 336] */
+QPushButton#btnTimKiemKM {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 7px 15px;
+    font-weight: 600;
+}
+
+QPushButton#btnTimKiemKM:hover {
+    background-color: #e5e7eb;
+}
+
+/* Áp dụng cho ô chọn ngày tháng */
+QDateEdit {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px; /* Bo góc 8px chuẩn hệ thống [cite: 282, 287] */
+    padding: 6px 10px;
+    color: #4b5563; /* Màu xám đậm chuyên nghiệp [cite: 290] */
+    min-width: 120px;
+}
+
+QDateEdit:focus {
+    border: 2px solid #2563eb; /* Xanh dương khi chọn [cite: 294] */
+    background-color: #ffffff;
+}
+
+/* Tùy chỉnh nút mũi tên lịch */
+QDateEdit::drop-down {
+    border: none;
+    width: 25px;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <widget class="QFrame" name="frQuanLyKM">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="_2">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>9</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblTitleQuanLyKM">
+                <property name="text">
+                 <string>Quản lý khuyến mãi</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_9">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>182</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTaoKM">
+                <property name="text">
+                 <string>+    Tạo khuyến mãi</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frTimKiem_7">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_18">
+              <item>
+               <widget class="QLineEdit" name="txtTimKiemKM">
+                <property name="placeholderText">
+                 <string>Nhập tên chương trình...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDateEdit" name="deLocNgayBatDauKM"/>
+              </item>
+              <item>
+               <widget class="QDateEdit" name="deLocNgayKetThucKM"/>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_15">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>140</width>
+                  <height>13</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTimKiemKM">
+                <property name="text">
+                 <string>Tìm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tblDanhSachKM">
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <property name="showGrid">
+              <bool>false</bool>
+             </property>
+             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+              <bool>false</bool>
+             </attribute>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <attribute name="verticalHeaderStretchLastSection">
+              <bool>false</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string>Mã khuyến mãi</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Tên chương trình</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Ngày bắt đầu</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Ngày kết thúc</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Trạng thái</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Thao tác</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="pageNhanVien">
+          <property name="styleSheet">
+           <string notr="true">/* 1. Thiết lập nền xám nhạt cho toàn trang [cite: 98-99] */
+QWidget#pageNV {
+    background-color: #f8f9fa;
+}
+
+/* 2. Tiêu đề trang (Quản lý tài khoản) [cite: 64-65, 114-115, 170] */
+QLabel#lblTitleQuanLyNV {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+}
+
+/* 3. Nút Thêm tài khoản (+ Thêm tài khoản) [cite: 116, 171, 230, 249, 319] */
+QPushButton#btnThemNV {
+    background-color: #2563eb; /* Màu xanh dương thương hiệu */
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 20px;
+}
+
+QPushButton#btnThemNV:hover {
+    background-color: #1d4ed8; /* Đậm hơn khi di chuột qua [cite: 172, 230, 250] */
+}
+
+/* 4. Kiểu dáng Bảng Danh sách tài khoản (Card UI) [cite: 101-102, 117, 174, 231-232, 251] */
+QTableWidget#tblDanhSachNV {
+    background-color: white;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+    gridline-color: transparent; /* Ẩn lưới để bảng sạch sẽ như Figma [cite: 133, 210, 243] */
+    outline: none;
+}
+
+/* Tiêu đề cột (Headers) - BUỘC IN HOA [cite: 66-69, 118, 175, 233, 252] */
+QHeaderView::section {
+    background-color: white;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #4b5563;
+    text-align: left;
+}
+
+/* Hiệu ứng khi chọn dòng trong bảng [cite: 192-193] */
+QTableWidget#tblDanhSachNV::item:selected {
+    background-color: #eff6ff; /* Xanh nhạt tinh tế */
+    color: #2563eb;
+}
+
+/* 3. KHỐI TÌM KIẾM (frTimKiem) - Thiết kế dạng Card mỏng [cite: 331, 287, 456] */
+QFrame#frTimKiem {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* Ô nhập liệu tìm kiếm [cite: 396-402] */
+QLineEdit#txtTimKiemNV {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #111827;
+    min-width: 250px;
+}
+
+QLineEdit#txtTimKiemNV:focus {
+    border: 2px solid #2563eb;
+    background-color: #ffffff;
+}
+
+/* Bộ lọc Trạng thái (ComboBox) [cite: 403-411] */
+QComboBox#cbLocLoaiNV {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 5px 15px;
+    color: #4b5563;
+    min-width: 150px;
+}
+
+QComboBox#cbLocLoaiNV::drop-down {
+    border: none;
+    width: 30px;
+}
+
+QComboBox#cbLocLoaiNVi::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #6b7280;
+    margin-right: 10px;
+}
+
+/* Nút Tìm kiếm [cite: 162, 336] */
+QPushButton#btnTimKiemNV {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 7px 15px;
+    font-weight: 600;
+}
+
+QPushButton#btnTimKiemNV:hover {
+    background-color: #e5e7eb;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_9">
+           <item>
+            <widget class="QFrame" name="frame_2">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblTitleQuanLyNV">
+                <property name="text">
+                 <string>Quản lý nhân viên</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>199</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnThemNV">
+                <property name="text">
+                 <string>+    Thêm nhân viên</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frTimKiem_8">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_19">
+              <item>
+               <widget class="QLineEdit" name="txtTimKiemNV">
+                <property name="placeholderText">
+                 <string>Nhập số điện thoại nhân viên...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cbLocLoaiNV"/>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_16">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>140</width>
+                  <height>13</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnTimKiemNV">
+                <property name="text">
+                 <string>Tìm</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tblDanhSachNV">
+             <column>
+              <property name="text">
+               <string>Mã NV</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Tên NV</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Phòng ban</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Loại</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>SĐT</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Ngày bắt đầu</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Thao tác</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>910</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

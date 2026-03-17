@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>650</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* 1. Tổng thể Cửa sổ [cite: 1808-1809] */
+QDialog {
+    background-color: #f3f4f6; /* Nền xám nhạt làm nổi bật Card trắng */
+    font-family: &quot;Inter&quot;, &quot;Segoe UI&quot;, sans-serif;
+}
+
+/* 2. Tiêu đề Tên danh mục (Nổi bật nhất) [cite: 1810-1811] */
+QLabel#lblHienThiTenDanhMuc {
+    font-size: 26px;
+    font-weight: 800; /* Extra bold */
+    color: #111827;   /* Đen tuyền chuyên nghiệp */
+    padding: 10px 0px;
+}
+
+/* 3. Thẻ nội dung (Cards) [cite: 1812] */
+QFrame#frame {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px; /* Bo góc 12px đồng bộ toàn hệ thống */
+}
+
+/* 4. Tiêu đề khối con (Danh sách sản phẩm) [cite: 1813] */
+QLabel#lblDanhSachSP {
+    font-size: 17px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 5px;
+}
+
+/* 5. Nút bấm (Ví dụ: Nút Sửa) [cite: 1818] */
+QPushButton#btnSua {
+    background-color: #2563eb; /* Màu xanh dương thương hiệu */
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 8px 20px;
+}
+
+QPushButton#btnSua:hover {
+    background-color: #1d4ed8; /* Đậm hơn khi di chuột qua */
+}
+
+/* 6. Bảng danh sách sản phẩm [cite: 1814-1816] */
+QTableWidget#tblDanhSachSP {
+    background-color: #ffffff;
+    border: none;
+    gridline-color: transparent; /* Xóa lưới để trông sạch sẽ */
+    outline: none;
+}
+
+QHeaderView::section {
+    background-color: #ffffff;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #6b7280;
+    text-transform: uppercase; /* BUỘC IN HOA TIÊU ĐỀ CỘT */
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+/* Hiệu ứng khi chọn dòng trong bảng */
+QTableWidget#tblDanhSachSP::item:selected {
+    background-color: #eff6ff; /* Xanh nhạt tinh tế */
+    color: #2563eb;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="lblHienThiTenDanhMuc">
+       <property name="text">
+        <string>Tên danh mục</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSua">
+       <property name="text">
+        <string>Sửa</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QLabel" name="lblDanhSachSP">
+        <property name="text">
+         <string>Danh sách sản phẩm</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="tblDanhSachSP">
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="showGrid">
+         <bool>false</bool>
+        </property>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>Mã sản phẩm</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Tên sản phẩm</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Đơn giá</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Tồn kho</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

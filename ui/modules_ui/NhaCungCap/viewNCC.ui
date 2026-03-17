@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>650</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* 1. Tổng thể Cửa sổ [cite: 419-421] */
+QDialog {
+    background-color: #f3f4f6; /* Nền xám nhạt làm nổi bật thẻ trắng */
+    font-family: &quot;Inter&quot;, &quot;Segoe UI&quot;, sans-serif;
+}
+
+/* 2. Tiêu đề chính trang [cite: 421-422] */
+QLabel#lblXemChiTietNCC {
+    font-size: 26px;
+    font-weight: 800;
+    color: #111827;
+    padding: 10px 0px;
+}
+
+/* 3. Thẻ nội dung (Cards) [cite: 422-423] */
+QFrame#frame, QFrame#frame_2, QFrame#frame_3 {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+/* 4. Tiêu đề các khối con [cite: 423-424] */
+QLabel#lblDanhSachSPCungCap, QLabel#lblThongTinLienHe, QLabel#lblDonHangNhap {
+    font-size: 17px;
+    font-weight: 700;
+    color: #111827;
+    background-color: transparent;
+    border: none;
+    margin-bottom: 5px;
+}
+
+/* 5. Nhãn mô tả thuộc tính (Labels) [cite: 424-425] */
+QLabel#lblMaNCC, QLabel#lblSDT, QLabel#lblEmail, QLabel#lblDiaChi,
+QLabel#lblMaDonNhap, QLabel#lblNgayNhap, QLabel#lblTongTien {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563; /* Màu xám đậm chuyên nghiệp */
+}
+
+/* 6. Nhãn hiển thị giá trị thực tế (Values) [cite: 425-426] */
+QLabel#lblHienThiMaNCC, QLabel#lblHienThiSDT, QLabel#lblHienThiEmail, 
+QLabel#lblHienThiDiaChi, QLabel#lblHienThiMaDonNhap, 
+QLabel#lblHienThiNgayNhap, QLabel#lblHienThiTongTien {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    padding: 5px 0px;
+}
+
+/* 7. Nút bấm (Buttons) [cite: 427-428] */
+QPushButton#btnXemDonNhap, QPushButton#btnSua {
+    background-color: #2563eb; /* Xanh dương thương hiệu */
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 10px 20px;
+}
+
+QPushButton:hover {
+    background-color: #1d4ed8;
+}
+
+/* 8. Bảng danh sách sản phẩm [cite: 429-432] */
+QTableWidget#tblDanhSachSPCungCap {
+    background-color: #ffffff;
+    border: none;
+    gridline-color: transparent;
+    outline: none;
+}
+
+QHeaderView::section {
+    background-color: #ffffff;
+    padding: 12px;
+    border: none;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: bold;
+    color: #6b7280;
+    text-transform: uppercase; /* BUỘC IN HOA TIÊU ĐỀ CỘT */
+    font-size: 11px;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_5">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="lblXemChiTietNCC">
+       <property name="text">
+        <string>Chi tiết nhà cung cấp</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSua">
+       <property name="text">
+        <string>Sửa</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QFrame" name="frame">
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QLabel" name="lblDanhSachSPCungCap">
+          <property name="text">
+           <string>Danh sách sản phẩm cung cấp</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="tblDanhSachSPCungCap">
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <property name="showGrid">
+           <bool>false</bool>
+          </property>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>Mã sản phẩm</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Tên sản phẩm</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Số lượng</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Giá nhập</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QFrame" name="frame_3">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QLabel" name="lblThongTinLienHe">
+            <property name="text">
+             <string>Thông tin liên hệ</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="lblMaNCC">
+              <property name="text">
+               <string>Mã nhà cung cấp</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lblSDT">
+              <property name="text">
+               <string>SĐT</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="lblEmail">
+              <property name="text">
+               <string>Email</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="lblDiaChi">
+              <property name="text">
+               <string>Địa chỉ</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="lblHienThiMaNCC">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="lblHienThiSDT">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="lblHienThiEmail">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLabel" name="lblHienThiDiaChi">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_2">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLabel" name="lblDonHangNhap">
+            <property name="text">
+             <string>Đơn hàng nhập</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayout_2">
+            <item row="0" column="0">
+             <widget class="QLabel" name="lblMaDonNhap">
+              <property name="text">
+               <string>Mã đơn nhập</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="lblHienThiMaDonNhap">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lblNgayNhap">
+              <property name="text">
+               <string>Ngày nhập</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="lblHienThiNgayNhap">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="lblTongTien">
+              <property name="text">
+               <string>Tổng tiền</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="lblHienThiTongTien">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnXemDonNhap">
+            <property name="text">
+             <string>Xem chi tiết</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
