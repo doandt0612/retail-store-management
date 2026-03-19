@@ -15,8 +15,8 @@ from src.modules.Product import ProductManager
 from src.modules.Customer import CustomerManager
 from src.modules.Supplier import SupplierManager
 
-# TODO: Import PromotionManager và PurchaseManager khi bạn tạo xong
-
+from src.modules.Promotion import PromotionManager
+from src.modules.Product_Input import PurchaseManager
 # Lấy đường dẫn gốc của project
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 UI_DIR = os.path.join(CURRENT_DIR, "ui")
@@ -177,6 +177,7 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
         lbl_status = self.get_widget(['lblHienThiDH'], QtWidgets.QLabel)
         
         self.order_manager = OrderManager(self.tblDonHang, btn_prev, btn_next, lbl_status)
+    
         
         # --- THÊM ĐOẠN NÀY ĐỂ KẾT NỐI VỚI MODULE KHÁCH HÀNG ---
         def handle_switch_to_customer(customer_data):
@@ -275,27 +276,70 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
         if hasattr(self, 'btnThemKH'):
             self.btnThemKH.clicked.connect(self.customer_manager.open_add)
 
+    def setup_module_promotion(self):
+        if not hasattr(self, 'tblDanhSachKM'): return
+
+        txt_search = self.get_widget(['txtTimKhuyenMai'], QtWidgets.QLineEdit)
+        cb_status  = self.get_widget(['cbTrangThaiKM'],   QtWidgets.QComboBox)
+
+        self.promotion_manager = PromotionManager(self.tblDanhSachKM, txt_search, cb_status)
+
+        if hasattr(self, 'btnKhuyenMai'):
+            self.btnKhuyenMai.clicked.connect(
+                lambda: self.change_page(self.pageKhuyenMai, self.promotion_manager.load_data)
+            )
+        if hasattr(self, 'btnThemKhuyenMai'):
+            self.btnThemKhuyenMai.clicked.connect(self.promotion_manager.open_add)
+        
+    def setup_module_purchase(self):
+        """
+        Module Nhập Hàng.
+        Tìm bảng theo nhiều tên có thể có trong UI, gắn sự kiện nút.
+        Tên widget trong mainQLCH.ui:
+          tblDanhSachDonNhap hoặc tblNhapHang – QTableWidget 6 cột
+          pageNhapHang, btnNhapHang, btnThemDonNhap
+          txtTimNhapHang, cbTrangThaiNhapHang (tùy chọn)
+        """
+        # Tên bảng thực tế trong UI: tblDanhSachNhapHang
+        if not hasattr(self, 'tblDanhSachNhapHang'): return
+
+        txt_search = self.get_widget(['txtTimNhapHang'],      QtWidgets.QLineEdit)
+        cb_status  = self.get_widget(['cbTrangThaiNhapHang'], QtWidgets.QComboBox)
+        self.purchase_manager = PurchaseManager(self.tblDanhSachNhapHang, txt_search, cb_status)
+
+        if hasattr(self, 'btnNhapHang'):
+            self.btnNhapHang.clicked.connect(
+                lambda: self.change_page(self.pageNhapHang, self.purchase_manager.load_data)
+            )
+        if hasattr(self, 'btnThemDonNhap'):
+            self.btnThemDonNhap.clicked.connect(self.purchase_manager.open_add)
+
+
     def setup_module_supplier(self):
         if not hasattr(self, 'tblDanhSachNCC'): return
-        self.supplier_manager = SupplierManager(self.tblDanhSachNCC)
+
+        txt_search = self.get_widget(['txtTimKiemNCC'], QtWidgets.QLineEdit)
+        btn_search = self.get_widget(['btnTimKiemNCC'], QtWidgets.QPushButton)
+        self.supplier_manager = SupplierManager(self.tblDanhSachNCC, txt_search, btn_search)
+
+        def handle_open_purchase_order(po_id):
+            if hasattr(self, 'pageNhapHang'):
+                self.stackedWidget.setCurrentWidget(self.pageNhapHang)
+            if hasattr(self, 'purchase_manager'):
+                self.purchase_manager.load_data()
+                self.purchase_manager.open_view(po_id)
+
+        self.supplier_manager.open_purchase_order_callback = handle_open_purchase_order
+
         if hasattr(self, 'btnNhaCungCap'):
-            self.btnNhaCungCap.clicked.connect(lambda: self.change_page(self.pageNhaCungCap, self.supplier_manager.load_data))
+            self.btnNhaCungCap.clicked.connect(
+                lambda: self.change_page(self.pageNhaCungCap, self.supplier_manager.load_data)
+            )
         if hasattr(self, 'btnThemNCC'):
             self.btnThemNCC.clicked.connect(self.supplier_manager.open_add)
 
-
-
-    def setup_module_promotion(self):
-        # TODO: Điền thông tin set up khuyến mãi
-        pass
-        
-    def setup_module_purchase(self):
-        # TODO: Điền thông tin set up nhập hàng
-        pass
-
-
     def setup_module_employee(self):
-        # TODO: Điền thông tin set up nhân viên       
+        # TODO: Điền thông tin set up nhân viên khi có file Employee.py
         pass
 
 
@@ -324,7 +368,7 @@ class ManagerWindow(BaseRoleWindow):
         
         # ---> NÚT ĐẦU TIÊN CỦA QUẢN LÝ LÀ: TỔNG QUAN <---
         if hasattr(self, 'pageTongQuan') and hasattr(self, 'overview_manager'):
-            self.change_page(self.pageTongQuan, self.overview_manager.load_recent_orders)
+            self.change_page(self.pageTongQuan, self.overview_manager.load_data)
 
 
 class SalesWindow(BaseRoleWindow):
