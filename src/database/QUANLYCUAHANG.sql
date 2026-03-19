@@ -11,7 +11,8 @@ create table Employees
 	EmployeeEmail nvarchar(50),
 	HireDate date not null,
 	Status nvarchar(50) not null,
-	EmployeeType nvarchar(50) not null
+	EmployeeType nvarchar(50) not null,
+	ManagerID int
 )
 
 ---TẠO BẢNG ACCOUNTS
@@ -199,6 +200,9 @@ ALTER TABLE Promotion_Details ADD CONSTRAINT pk_Promotion_Details PRIMARY KEY (P
 
 
 ---FOREIGN KEY
+---RÀNG BUỘC KHÓA NGOẠI BẢNG EMPLOYEES (Quan hệ đệ quy quản lý)
+ALTER TABLE Employees ADD CONSTRAINT fk_Employees_Manager 
+FOREIGN KEY (ManagerID) REFERENCES Employees(EmployeeID);
 ---RÀNG BUỘC KHÓA NGOẠI BẢNG ACCOUNTS
 ALTER TABLE Accounts ADD CONSTRAINT fk_Accounts_Employees 
 FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
@@ -397,17 +401,17 @@ CHECK (
 )
 
 
-INSERT INTO Employees (EmployeeID, EmployeeName, EmployeeGender, EmployeePhone, EmployeeEmail, HireDate, Status, EmployeeType) VALUES
-(1, N'Lê Quốc Chính', N'Nam', '0901000111', N'vuong.le@cuahang.com', '2020-01-10', N'Đang làm việc', N'Full_time'),
-(2, N'Trần Công Anh', N'Nam', '0902000222', N'anhtran@cuahang.com', '2021-03-15', N'Đang làm việc', N'Full_time'),
-(3, N'Nguyễn Hải Nam', N'Nam', '0903000333', N'kietnguyen@cuahang.com', '2022-05-20', N'Đang làm việc', N'Full_time'),
-(4, N'Hoàng Yến Nhi', N'Nữ', '0904000444', N'thuonghoang@cuahang.com', '2023-08-10', N'Đang làm việc', N'Full_time'),
-(5, N'Phạm Tiến Nhân', N'Nam', '0905000555', N'caopham@cuahang.com', '2022-11-01', N'Đã nghỉ việc', N'Full_time'),
-(6, N'Đỗ Minh Long', N'Nam', '0906000666', N'namdo@cuahang.com', '2021-09-05', N'Đang làm việc', N'Full_time'),
-(7, N'Vũ Thu Phương', N'Nữ', '0907000777', N'hoanvu@cuahang.com', '2023-02-14', N'Đang làm việc', N'Full_time'),
-(8, N'Bùi Thanh Hảo', N'Nữ', '0908000888', N'haobui@cuahang.com', '2024-01-05', N'Đang làm việc', N'Part_time'),
-(9, N'Lý Văn Nhất', N'Nam', '0909000999', N'nhatly@cuahang.com', '2023-12-20', N'Đã nghỉ việc', N'Part_time'),
-(10, N'Đinh Bảo Ly', N'Nữ', '0910000101', N'lydinh@cuahang.com', '2024-03-01', N'Đang làm việc', N'Part_time');
+INSERT INTO Employees (EmployeeID, EmployeeName, EmployeeGender, EmployeePhone, EmployeeEmail, HireDate, Status, EmployeeType, ManagerID) VALUES
+(1, N'Lê Quốc Chính', N'Nam', '0901000111', N'vuong.le@cuahang.com', '2020-01-10', N'Đang làm việc', N'Full_time', NULL),
+(2, N'Trần Công Anh', N'Nam', '0902000222', N'anhtran@cuahang.com', '2021-03-15', N'Đang làm việc', N'Full_time', 1),
+(3, N'Nguyễn Hải Nam', N'Nam', '0903000333', N'kietnguyen@cuahang.com', '2022-05-20', N'Đang làm việc', N'Full_time', 1),
+(4, N'Hoàng Yến Nhi', N'Nữ', '0904000444', N'thuonghoang@cuahang.com', '2023-08-10', N'Đang làm việc', N'Full_time', 1),
+(5, N'Phạm Tiến Nhân', N'Nam', '0905000555', N'caopham@cuahang.com', '2022-11-01', N'Đã nghỉ việc', N'Full_time', 1),
+(6, N'Đỗ Minh Long', N'Nam', '0906000666', N'namdo@cuahang.com', '2021-09-05', N'Đang làm việc', N'Full_time', 1),
+(7, N'Vũ Thu Phương', N'Nữ', '0907000777', N'hoanvu@cuahang.com', '2023-02-14', N'Đang làm việc', N'Full_time', 1),
+(8, N'Bùi Thanh Hảo', N'Nữ', '0908000888', N'haobui@cuahang.com', '2024-01-05', N'Đang làm việc', N'Part_time', 1),
+(9, N'Lý Văn Nhất', N'Nam', '0909000999', N'nhatly@cuahang.com', '2023-12-20', N'Đã nghỉ việc', N'Part_time', 1),
+(10, N'Đinh Bảo Ly', N'Nữ', '0910000101', N'lydinh@cuahang.com', '2024-03-01', N'Đang làm việc', N'Part_time', 1);
 
 
 INSERT INTO Accounts (AccountID, EmployeeID, Username, Password, Role, Status) VALUES
@@ -440,14 +444,16 @@ INSERT INTO Part_Time (EmployeeID, HourlyRate, WorkingHoursPerWeek) VALUES
 
 INSERT INTO Skills (EmployeeID, Skill) VALUES
 (1, N'Quản trị cửa hàng'),
+(1, N'Chăm sóc khách hàng VIP'),
 (2, N'Chăm sóc khách hàng VIP'),
 (3, N'Điều phối ca trực'),
-(4, N'Giao tiếp thuyết phục'),
+(4, N'Xử lý khiếu nại qua điện thoại'),
 (5, N'Kỹ năng chốt sale nhanh'),
 (6, N'Quản lý xuất nhập tồn'),
+(6, N'Tư vấn trực tiếp'),
 (7, N'Sắp xếp hàng hóa tối ưu'),
 (8, N'Tư vấn trực tiếp'),
-(9, N'Tư vấn sản phẩm gia dụng'),
+(9, N'Tư vấn trực tiếp'),
 (10, N'Xử lý khiếu nại qua điện thoại');
 
 
