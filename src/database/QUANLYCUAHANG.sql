@@ -148,8 +148,8 @@ create table Promotion_Details
 	PromotionID int not null,
 	ProductID int not null,
 	ApplicableDate date not null,
-	DiscountRate decimal (18,2) not null,
-	DiscountValue decimal (18,2) not null,
+	DiscountRate decimal (18,2),
+	DiscountValue decimal (18,2),
 	DiscountedPrice decimal (18,2) not null
 )
 
@@ -246,6 +246,8 @@ FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 ---UNIQUE
 ---ĐẢM BẢO SĐT KHÁCH HÀNG KHÔNG BỊ TRÙNG
 ALTER TABLE Customers ADD CONSTRAINT UQ_Customers_Phone UNIQUE (CustomerPhone)
+---ĐẢM BẢO 1 NHÂN VIÊN CHỈ CÓ TỐI ĐA 1 TÀI KHOẢN
+ALTER TABLE Accounts ADD CONSTRAINT UQ_Accounts_EmployeeID UNIQUE (EmployeeID);
 ---ĐẢM BẢO USERNAME KHÔNG BỊ TRÙNG
 ALTER TABLE Accounts ADD CONSTRAINT UQ_Accounts_Username UNIQUE (Username)
 ---ĐẢM BẢO SĐT VÀ EMAIL NHÂN VIÊN KHÔNG BỊ TRÙNG
@@ -256,6 +258,8 @@ ALTER TABLE Suppliers ADD CONSTRAINT UQ_Suppliers_Phone UNIQUE (SupplierPhone);
 ALTER TABLE Suppliers ADD CONSTRAINT UQ_Suppliers_Email UNIQUE (SupplierEmail)
 ---ĐẢM BẢO TÊN DANH MỤC LÀ DUY NHẤT
 ALTER TABLE Categories ADD CONSTRAINT UQ_Categories_Name UNIQUE (CategoryName)
+---ĐẢM BẢO 1 ĐƠN HÀNG CHỈ CÓ TỐI ĐA 1 HÓA ĐƠN THANH TOÁN (BILL)
+ALTER TABLE Bills ADD CONSTRAINT UQ_Bills_OrderID UNIQUE (OrderID);
 ---ĐẢM BẢO TÊN CHƯƠNG TRÌNH KHUYẾN MÃI LÀ DUY NHẤT
 ALTER TABLE Promotions ADD CONSTRAINT UQ_Promotion_Name UNIQUE (PromotionName)
 
@@ -274,7 +278,7 @@ CHECK (EmployeeType IN (N'Part_time', N'Full_time'))
 ---RÀNG BUỘC CHO BẢNG ACCOUNTS
 ---ĐẢM BẢO VAI TRÒ TÀI KHOẢN HỢP LỆ
 ALTER TABLE Accounts ADD CONSTRAINT CHK_Accounts_Role 
-CHECK (Role IN (N'Quản lý', N'Nhân viên bán hàng', N'Nhân viên kho'))
+CHECK (Role IN (N'Quản lý cửa hàng', N'Nhân viên bán hàng', N'Nhân viên kho'))
 ---ĐẢM BẢO TRẠNG THÁI TÀI KHOẢN HỢP LỆ
 ALTER TABLE Accounts ADD CONSTRAINT CHK_Accounts_Status 
 CHECK (Status IN (N'Đang hoạt động', N'Đã bị khóa'))
@@ -330,6 +334,14 @@ CHECK (Discount >= 0)
 ALTER TABLE Order_Details ADD CONSTRAINT CHK_SubTotal 
 CHECK (SubTotal >= 0)
 
+---RÀNG BUỘC CHO BẢNG BILLS
+--- ĐẢM BẢO SỐ TIỀN THANH TOÁN PHẢI LỚN HƠN 0
+ALTER TABLE Bills ADD CONSTRAINT CHK_PaymentAmount 
+CHECK (PaymentAmount > 0)
+---ĐẢM BẢO PHƯƠNG THỨC THANH TOÁN LÀ "TIỀN MẶT", "CHUYỂN KHOẢN NGÂN HÀNG" HOẶC "VÍ ĐIỆN TỬ"
+ALTER TABLE Bills ADD CONSTRAINT CHK_PaymentMethod 
+CHECK (PaymentMethod IN (N'Tiền mặt', N'Chuyển khoản ngân hàng', N'Ví điện tử'))
+
 ---RÀNG BUỘC CHO BẢNG PURCHASE_ORDERS
 ---ĐẢM BẢO TRẠNG THÁI ĐƠN NHẬP HÀNG LÀ "ĐÃ NHẬN HÀNG" HOẶC "CHƯA NHẬN HÀNG"
 ALTER TABLE Purchase_Orders ADD CONSTRAINT CHK_PurchaseOrders_Status 
@@ -340,6 +352,9 @@ CHECK (TotalAmount >= 0)
 ---ĐẢM BẢO NGÀY NHẬN HÀNG DỰ KIẾN PHẢI SAU HOẶC BẰNG NGÀY ĐẶT HÀNG
 ALTER TABLE Purchase_Orders ADD CONSTRAINT CHK_Purchase_Dates 
 CHECK (ExpectedDate >= PurchasedDate)
+---ĐẢM BẢO NGÀY THỰC NHẬN PHẢI SAU HOẶC BẰNG NGÀY ĐẶT MUA (Bỏ qua nếu chưa nhận - NULL)
+ALTER TABLE Purchase_Orders ADD CONSTRAINT CHK_Purchase_ReceivedDate 
+CHECK (ReceivedDate IS NULL OR ReceivedDate >= PurchasedDate);
 
 ---RÀNG BUỘC CHO BẢNG PURCHASE_DETAILS
 ---ĐẢM BẢO SỐ LƯỢNG ĐẶT MUA PHẢI LỚN HƠN 0
@@ -373,14 +388,13 @@ CHECK (DiscountValue >= 0)
 ---ĐẢM BẢO GIÁ SAU KHI CHIẾT KHẤU KHÔNG ÂM
 ALTER TABLE Promotion_Details ADD CONSTRAINT CHK_DiscountedPrice 
 CHECK (DiscountedPrice >= 0)
-
----RÀNG BUỘC CHO BẢNG BILLS
---- ĐẢM BẢO SỐ TIỀN THANH TOÁN PHẢI LỚN HƠN 0
-ALTER TABLE Bills ADD CONSTRAINT CHK_PaymentAmount 
-CHECK (PaymentAmount > 0)
----ĐẢM BẢO PHƯƠNG THỨC THANH TOÁN LÀ "TIỀN MẶT", "CHUYỂN KHOẢN NGÂN HÀNG" HOẶC "VÍ ĐIỆN TỬ"
-ALTER TABLE Bills ADD CONSTRAINT CHK_PaymentMethod 
-CHECK (PaymentMethod IN (N'Tiền mặt', N'Chuyển khoản ngân hàng', N'Ví điện tử'))
+---ĐẢM BẢO CHỈ NHẬP 1 TRONG 2: HOẶC RATE, HOẶC VALUE
+ALTER TABLE Promotion_Details ADD CONSTRAINT CHK_Promotion_Discount_Input 
+CHECK (
+    (DiscountRate IS NOT NULL AND DiscountValue IS NULL) 
+    OR 
+    (DiscountRate IS NULL AND DiscountValue IS NOT NULL)
+)
 
 
 INSERT INTO Employees (EmployeeID, EmployeeName, EmployeeGender, EmployeePhone, EmployeeEmail, HireDate, Status, EmployeeType) VALUES
@@ -393,11 +407,11 @@ INSERT INTO Employees (EmployeeID, EmployeeName, EmployeeGender, EmployeePhone, 
 (7, N'Vũ Thu Phương', N'Nữ', '0907000777', N'hoanvu@cuahang.com', '2023-02-14', N'Đang làm việc', N'Full_time'),
 (8, N'Bùi Thanh Hảo', N'Nữ', '0908000888', N'haobui@cuahang.com', '2024-01-05', N'Đang làm việc', N'Part_time'),
 (9, N'Lý Văn Nhất', N'Nam', '0909000999', N'nhatly@cuahang.com', '2023-12-20', N'Đã nghỉ việc', N'Part_time'),
-(10, N'Đinh Bảo Ly', N'Nữ', '0910000101', N'luondinh@cuahang.com', '2024-03-01', N'Đang làm việc', N'Part_time'); 
+(10, N'Đinh Bảo Ly', N'Nữ', '0910000101', N'lydinh@cuahang.com', '2024-03-01', N'Đang làm việc', N'Part_time');
 
 
 INSERT INTO Accounts (AccountID, EmployeeID, Username, Password, Role, Status) VALUES
-(1, 1, 'chinh.le', '123456', N'Quản lý', N'Đang hoạt động'),
+(1, 1, 'chinh.le', '123456', N'Quản lý cửa hàng', N'Đang hoạt động'),
 (2, 2, 'anh.tran', '123456', N'Nhân viên bán hàng', N'Đang hoạt động'),
 (3, 3, 'nam.nguyen', '123456', N'Nhân viên bán hàng', N'Đang hoạt động'),
 (4, 4, 'nhi.hoang', '123456', N'Nhân viên bán hàng', N'Đang hoạt động'),
@@ -421,19 +435,19 @@ INSERT INTO Full_Time (EmployeeID, Position, MonthlySalary) VALUES
 INSERT INTO Part_Time (EmployeeID, HourlyRate, WorkingHoursPerWeek) VALUES
 (8, 25000.00, 24), 
 (9, 30000.00, 20), 
-(10, 25000.00, 28); 
+(10, 25000.00, 28);
 
 
 INSERT INTO Skills (EmployeeID, Skill) VALUES
 (1, N'Quản trị cửa hàng'),
-(2, N'Báo cáo tài chính, Thuế'),
+(2, N'Chăm sóc khách hàng VIP'),
 (3, N'Điều phối ca trực'),
 (4, N'Giao tiếp thuyết phục'),
-(5, N'Sửa chữa vi mạch điện tử'),
+(5, N'Kỹ năng chốt sale nhanh'),
 (6, N'Quản lý xuất nhập tồn'),
-(7, N'Đàm phán hợp đồng cung ứng'),
+(7, N'Sắp xếp hàng hóa tối ưu'),
 (8, N'Tư vấn trực tiếp'),
-(9, N'Thông thạo đường xá TP.HCM'),
+(9, N'Tư vấn sản phẩm gia dụng'),
 (10, N'Xử lý khiếu nại qua điện thoại');
 
 
@@ -486,7 +500,72 @@ INSERT INTO Products (ProductID, CategoryID, ProductName, UnitPrice, UnitsInStoc
 (7, 7, N'Đồ chơi lắp ráp Lego City', 550000.00, 0, N'Hết hàng'), 
 (8, 8, N'Truyện tranh Conan Tập 100', 25000.00, 86, N'Còn hàng'), 
 (9, 9, N'Áo thun nam ngắn tay AIRism', 249000.00, 0, N'Hết hàng'), 
-(10, 10, N'Máy sấy tóc Panasonic 1500W', 450000.00, 0, N'Hết hàng'); 
+(10, 10, N'Máy sấy tóc Panasonic 1500W', 450000.00, 0, N'Hết hàng');
+
+
+INSERT INTO Orders (OrderID, CustomerID, EmployeeID, OrderDate, TotalAmount, Status) VALUES
+(1, 1, 3, '2026-03-01', 30000000.00, N'Đã thanh toán'), 
+(2, 2, 4, '2026-03-02', 3000000.00, N'Đã thanh toán'),  
+(3, 3, 8, '2026-03-03', 1032500.00, N'Chưa thanh toán'),
+(4, 4, 3, '2026-03-04', 1050000.00, N'Đã thanh toán'),  
+(5, 5, 4, '2026-03-05', 2400000.00, N'Đã thanh toán'),  
+(6, 6, 8, '2026-03-06', 1100000.00, N'Đã thanh toán'),  
+(7, 7, 3, '2026-03-07', 100000.00, N'Đã thanh toán'),   
+(8, 8, 4, '2026-03-08', 250000.00, N'Đã thanh toán'), 
+(9, 9, 8, '2026-03-09', 480000.00, N'Đã thanh toán'),   
+(10, 10, 3, '2026-03-10', 1980000.00, N'Đã thanh toán');
+
+
+INSERT INTO Order_Details (OrderID, ProductID, OrderedQuantity, Discount, SubTotal) VALUES
+(1, 1, 1, 0.00, 30000000.00), 
+(2, 2, 2, 0.00, 3000000.00),  
+(3, 3, 5, 92500.00, 832500.00),
+(3, 4, 2, 0.00, 200000.00),
+(4, 5, 3, 0.00, 1050000.00),  
+(5, 6, 10, 0.00, 2400000.00), 
+(6, 7, 2, 0.00, 1100000.00), 
+(7, 8, 4, 0.00, 100000.00),   
+(8, 8, 10, 0.00, 250000.00), 
+(9, 6, 2, 0.00, 480000.00),   
+(10, 2, 1, 0.00, 1500000.00), 
+(10, 6, 2, 0.00, 480000.00); 
+
+
+INSERT INTO Bills (BillID, OrderID, PaymentAmount, PaymentDate, PaymentMethod) VALUES
+(1, 1, 30000000.00, '2026-03-01', N'Chuyển khoản ngân hàng'),
+(2, 2, 3000000.00, '2026-03-02', N'Ví điện tử'),
+(3, 4, 1050000.00, '2026-03-04', N'Tiền mặt'),
+(4, 5, 2400000.00, '2026-03-05', N'Chuyển khoản ngân hàng'),
+(5, 6, 1100000.00, '2026-03-06', N'Tiền mặt'),
+(6, 7, 100000.00, '2026-03-07', N'Tiền mặt'),
+(7, 9, 480000.00, '2026-03-09', N'Ví điện tử'),          
+(8, 10, 1980000.00, '2026-03-10', N'Chuyển khoản ngân hàng'),
+(9, 8, 250000.00, '2026-03-08', N'Ví điện tử');
+
+
+INSERT INTO Purchase_Orders (PurchaseOrderID, SupplierID, EmployeeID, PurchasedDate, ExpectedDate, ReceivedDate, TotalAmount, Status) VALUES
+(1, 1, 7, '2026-01-05', '2026-01-10', '2026-01-10', 250000000.00, N'Đã nhận hàng'),
+(2, 2, 7, '2026-01-15', '2026-01-20', '2026-01-20', 3000000.00, N'Đã nhận hàng'),  
+(3, 3, 7, '2026-02-01', '2026-02-10', '2026-02-09', 14000000.00, N'Đã nhận hàng'),  
+(4, 4, 7, '2026-02-10', '2026-02-15', '2026-02-15', 14000000.00, N'Đã nhận hàng'),  
+(5, 5, 7, '2026-02-20', '2026-02-25', '2026-02-26', 750000.00, N'Đã nhận hàng'),   
+(6, 6, 7, '2026-03-01', '2026-03-05', '2026-03-05', 19000000.00, N'Đã nhận hàng'),  
+(7, 7, 7, '2026-02-25', '2026-03-01', '2026-03-02', 800000.00, N'Đã nhận hàng'),   
+(8, 8, 7, '2026-02-28', '2026-03-03', '2026-03-03', 1800000.00, N'Đã nhận hàng'),   
+(9, 9, 7, '2026-03-12', '2026-03-31', NULL, 750000.00, N'Chưa nhận hàng'),  
+(10, 10, 7, '2026-03-14', '2026-03-30', NULL, 9000000.00, N'Chưa nhận hàng'); 
+
+INSERT INTO Purchase_Details (PurchaseOrderID, ProductID, PurchasedQuantity, UnitCost, SubTotal) VALUES
+(1, 1, 10, 25000000.00, 250000000.00), 
+(2, 2, 3, 1000000.00, 3000000.00),        
+(3, 3, 100, 140000.00, 14000000.00),   
+(4, 4, 200, 70000.00, 14000000.00),    
+(5, 5, 3, 250000.00, 750000.00),        
+(6, 6, 100, 190000.00, 19000000.00),   
+(7, 7, 2, 400000.00, 800000.00),        
+(8, 8, 100, 18000.00, 1800000.00),      
+(9, 9, 5, 150000.00, 750000.00),        
+(10, 10, 30, 300000.00, 9000000.00);
 
 
 INSERT INTO Promotions (PromotionID, PromotionName, PromotionForm, StartDate, EndDate, Status) VALUES
@@ -503,76 +582,13 @@ INSERT INTO Promotions (PromotionID, PromotionName, PromotionForm, StartDate, En
 
 
 INSERT INTO Promotion_Details (PromotionID, ProductID, ApplicableDate, DiscountRate, DiscountValue, DiscountedPrice) VALUES
-(1, 1, '2026-01-20', 5.00, 1500000.00, 28500000.00), 
-(2, 2, '2026-02-12', 0.00, 200000.00, 1300000.00),  
-(3, 3, '2026-03-05', 10.00, 18500.00, 166500.00),   
-(4, 4, '2026-03-15', 0.00, 20000.00, 80000.00),     
-(5, 5, '2026-04-25', 10.00, 35000.00, 315000.00),   
-(6, 6, '2026-06-15', 0.00, 40000.00, 200000.00),   
-(7, 7, '2026-08-20', 20.00, 110000.00, 440000.00),  
-(8, 8, '2026-10-30', 0.00, 5000.00, 20000.00),      
-(9, 9, '2026-11-25', 10.00, 24900.00, 224100.00),  
-(10, 10, '2026-12-20', 0.00, 50000.00, 400000.00);
-
-
-INSERT INTO Orders (OrderID, CustomerID, EmployeeID, OrderDate, TotalAmount, Status) VALUES
-(1, 1, 3, '2026-03-01', 30000000.00, N'Đã thanh toán'), 
-(2, 2, 4, '2026-03-02', 3000000.00, N'Đã thanh toán'),  
-(3, 3, 8, '2026-03-03', 1125000.00, N'Chưa thanh toán'),
-(4, 4, 3, '2026-03-04', 1050000.00, N'Đã thanh toán'),  
-(5, 5, 4, '2026-03-05', 2400000.00, N'Đã thanh toán'),  
-(6, 6, 8, '2026-03-06', 1100000.00, N'Đã thanh toán'),  
-(7, 7, 3, '2026-03-07', 100000.00, N'Đã thanh toán'),   
-(8, 8, 4, '2026-03-08', 250000.00, N'Đã thanh toán'), 
-(9, 9, 8, '2026-03-09', 480000.00, N'Đã thanh toán'),   
-(10, 10, 3, '2026-03-10', 1980000.00, N'Đã thanh toán');
-
-INSERT INTO Order_Details (OrderID, ProductID, OrderedQuantity, Discount, SubTotal) VALUES
-(1, 1, 1, 0.00, 30000000.00), 
-(2, 2, 2, 0.00, 3000000.00),  
-(3, 3, 5, 0.00, 925000.00),   
-(3, 4, 2, 0.00, 200000.00),   
-(4, 5, 3, 0.00, 1050000.00),  
-(5, 6, 10, 0.00, 2400000.00), 
-(6, 7, 2, 0.00, 1100000.00), 
-(7, 8, 4, 0.00, 100000.00),   
-(8, 8, 10, 0.00, 250000.00), 
-(9, 6, 2, 0.00, 480000.00),   
-(10, 2, 1, 0.00, 1500000.00), 
-(10, 6, 2, 0.00, 480000.00);
-
-INSERT INTO Bills (BillID, OrderID, PaymentAmount, PaymentDate, PaymentMethod) VALUES
-(1, 1, 30000000.00, '2026-03-01', N'Chuyển khoản ngân hàng'),
-(2, 2, 3000000.00, '2026-03-02', N'Ví điện tử'),
-(3, 4, 1050000.00, '2026-03-04', N'Tiền mặt'),
-(4, 5, 2400000.00, '2026-03-05', N'Chuyển khoản ngân hàng'),
-(5, 6, 1100000.00, '2026-03-06', N'Tiền mặt'),
-(6, 7, 100000.00, '2026-03-07', N'Tiền mặt'),
-(7, 9, 480000.00, '2026-03-09', N'Ví điện tử'),          
-(8, 10, 1980000.00, '2026-03-10', N'Chuyển khoản ngân hàng'),
-(9, 3, 500000.00, '2026-03-03', N'Tiền mặt'), 
-(10, 8, 250000.00, '2026-03-08', N'Ví điện tử');         
-
-INSERT INTO Purchase_Orders (PurchaseOrderID, SupplierID, EmployeeID, PurchasedDate, ExpectedDate, ReceivedDate, TotalAmount, Status) VALUES
-(1, 1, 7, '2026-01-05', '2026-01-10', '2026-01-10', 250000000.00, N'Đã nhận hàng'),
-(2, 2, 7, '2026-01-15', '2026-01-20', '2026-01-20', 3000000.00, N'Đã nhận hàng'),  
-(3, 3, 7, '2026-02-01', '2026-02-10', '2026-02-09', 14000000.00, N'Đã nhận hàng'),  
-(4, 4, 7, '2026-02-10', '2026-02-15', '2026-02-15', 14000000.00, N'Đã nhận hàng'),  
-(5, 5, 7, '2026-02-20', '2026-02-25', '2026-02-26', 750000.00, N'Đã nhận hàng'),   
-(6, 6, 7, '2026-03-01', '2026-03-05', '2026-03-05', 19000000.00, N'Đã nhận hàng'),  
-(7, 7, 7, '2026-02-25', '2026-03-01', '2026-03-02', 800000.00, N'Đã nhận hàng'),   
-(8, 8, 7, '2026-02-28', '2026-03-03', '2026-03-03', 1800000.00, N'Đã nhận hàng'),   
-(9, 9, 7, '2026-03-12', '2026-03-31', NULL, 750000.00, N'Chưa nhận hàng'),  
-(10, 10, 7, '2026-03-14', '2026-03-30', NULL, 9000000.00, N'Chưa nhận hàng'); 
-
-INSERT INTO Purchase_Details (PurchaseOrderID, ProductID, PurchasedQuantity, UnitCost, SubTotal) VALUES
-(1, 1, 10, 25000000.00, 250000000.00), 
-(2, 2, 3, 1000000.00, 3000000.00),       
-(3, 3, 100, 140000.00, 14000000.00),   
-(4, 4, 200, 70000.00, 14000000.00),    
-(5, 5, 3, 250000.00, 750000.00),       
-(6, 6, 100, 190000.00, 19000000.00),   
-(7, 7, 2, 400000.00, 800000.00),       
-(8, 8, 100, 18000.00, 1800000.00),     
-(9, 9, 5, 150000.00, 750000.00),       
-(10, 10, 30, 300000.00, 9000000.00);
+(1, 1, '2026-01-20', 5.00, NULL, 28500000.00), 
+(2, 2, '2026-02-12', NULL, 200000.00, 1300000.00),  
+(3, 3, '2026-03-05', 10.00, NULL, 166500.00),   
+(4, 4, '2026-03-15', NULL, 20000.00, 80000.00),     
+(5, 5, '2026-04-25', 10.00, NULL, 315000.00),   
+(6, 6, '2026-06-15', NULL, 40000.00, 200000.00),   
+(7, 7, '2026-08-20', 20.00, NULL, 440000.00),  
+(8, 8, '2026-10-30', NULL, 5000.00, 20000.00),     
+(9, 9, '2026-11-25', 10.00, NULL, 224100.00),  
+(10, 10, '2026-12-20', NULL, 50000.00, 400000.00);
