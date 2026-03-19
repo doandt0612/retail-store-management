@@ -1,4 +1,4 @@
-﻿--create database QUANLYCUAHANG;
+﻿create database QUANLYCUAHANG;
 
 
 ---TẠO BẢNG EMPLOYEES
