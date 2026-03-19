@@ -81,7 +81,7 @@ class LoginWindow(QtWidgets.QDialog):
     def route_to_main_window(self, role, emp_id):
         # Đã bỏ lệnh self.hide() ở đây vì đã gọi ở trên
         try:
-            if role == "Quản lý":
+            if role == "Quản lý cửa hàng":
                 self.main_window = ManagerWindow(emp_id, self)
             elif role == "Nhân viên bán hàng":
                 self.main_window = SalesWindow(emp_id, self)
