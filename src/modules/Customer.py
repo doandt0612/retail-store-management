@@ -233,41 +233,45 @@ class CustomerManager:
     def __init__(self, table_widget, txt_search=None, btn_search=None):
         self.table = table_widget
         self.txt_search = txt_search
-        
+
         self.init_ui_style()
-        
-        # Kết nối sự kiện tìm kiếm nếu có truyền vào
-        if btn_search and txt_search:
-            btn_search.clicked.connect(self.load_data)
-            txt_search.returnPressed.connect(self.load_data)
+
+        # 1. KẾT NỐI AN TOÀN QUA HÀM TRUNG GIAN
+        if btn_search:
+            btn_search.clicked.connect(self.on_search_triggered)
+
+        if txt_search:
+            txt_search.textChanged.connect(self.on_search_triggered)
+
+    def on_search_triggered(self, *args):
+        """Hàm trung gian giúp triệt tiêu mọi xung đột tham số của PyQt6 khi gõ phím"""
+        self.load_data()
 
     def init_ui_style(self):
         """Cấu hình bảng với 5 cột chuẩn: Mã, Tên, SĐT, Tổng chi tiêu, Thao tác"""
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        
+
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        
-        # Cột cuối (Thao tác - index 4) cần không gian rộng hơn để chứa 3 nút
+
         header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeMode.Fixed)
-        self.table.setColumnWidth(4, 200) 
+        self.table.setColumnWidth(4, 200)
 
     def load_data(self):
         """Nạp danh sách khách hàng và tự động JOIN để tính TỔNG CHI TIÊU"""
         db = DatabaseManager()
         conn = db.get_connection()
         if not conn: return
-        
+
         search_kw = ""
-        if self.txt_search:
+        if hasattr(self, 'txt_search') and self.txt_search is not None:
             search_kw = self.txt_search.text().strip()
-            
+
         try:
             cursor = conn.cursor()
-            
-            # Truy vấn lấy Khách hàng + Tổng tiền đã mua từ bảng Orders (Chỉ tính đơn Đã thanh toán)
+
             query = """
                 SELECT 
                     c.CustomerID, 
@@ -277,47 +281,43 @@ class CustomerManager:
                 FROM Customers c
                 LEFT JOIN Orders o ON c.CustomerID = o.CustomerID AND o.Status = N'Đã thanh toán'
             """
-            
+
             params = ()
             if search_kw:
-                query += " WHERE c.CustomerPhone LIKE ? OR c.CustomerName LIKE ?"
-                params = (f"%{search_kw}%", f"%{search_kw}%")
-                
+                # Đã thêm lại dòng CAST để tìm theo Mã ID
+                query += """ WHERE c.CustomerName LIKE ? 
+                                         OR c.CustomerPhone LIKE ? 
+                                         OR CAST(c.CustomerID AS VARCHAR(50)) LIKE ? """
+                # Truyền đủ 3 biến search_kw
+                params = (f"%{search_kw}%", f"%{search_kw}%", f"%{search_kw}%")
             query += " GROUP BY c.CustomerID, c.CustomerName, c.CustomerPhone ORDER BY c.CustomerID DESC"
-            
+
             cursor.execute(query, params)
             rows = cursor.fetchall()
-            
+
             self.table.setRowCount(0)
-            
+
             for row_idx, row in enumerate(rows):
                 self.table.insertRow(row_idx)
-                
-                # Nạp dữ liệu
+
                 self.table.setItem(row_idx, 0, QtWidgets.QTableWidgetItem(str(row[0])))
                 self.table.setItem(row_idx, 1, QtWidgets.QTableWidgetItem(row[1]))
                 self.table.setItem(row_idx, 2, QtWidgets.QTableWidgetItem(row[2]))
-                
-                # Định dạng tiền tệ
+
                 money_str = f"{row[3]:,.0f} VNĐ"
                 self.table.setItem(row_idx, 3, QtWidgets.QTableWidgetItem(money_str))
-                
-                # Thông tin gửi sang Dialog
-                item_dict = {
-                    "id": row[0], 
-                    "ten": row[1], 
-                    "sdt": row[2]
-                }
-                
+
+                item_dict = {"id": row[0], "ten": row[1], "sdt": row[2]}
                 self.add_action_buttons(row_idx, item_dict)
-                
+
         except Exception as e:
+            # 3. BẬT CẢNH BÁO NẾU CÓ LỖI XẢY RA
+            QtWidgets.QMessageBox.critical(self.table.window(), "Lỗi Tải Dữ Liệu", f"Phát hiện lỗi:\n{str(e)}")
             print(f"Lỗi load KH: {e}")
         finally:
             conn.close()
 
     def add_action_buttons(self, row, item):
-        """Thêm 3 nút: Lịch sử, Sửa, Xóa vào cột cuối cùng"""
         container = QtWidgets.QWidget()
         layout = QtWidgets.QHBoxLayout(container)
         layout.setContentsMargins(5, 2, 5, 2)
@@ -328,15 +328,14 @@ class CustomerManager:
         btn_delete = QtWidgets.QPushButton("Xóa")
 
         style = "padding: 5px; font-weight: bold; border-radius: 4px; color: white;"
-        btn_history.setStyleSheet(f"background-color: #10b981; {style}") # Màu xanh lá
-        btn_edit.setStyleSheet(f"background-color: #f59e0b; {style}")    # Màu cam
-        btn_delete.setStyleSheet(f"background-color: #ef4444; {style}")  # Màu đỏ
-        
+        btn_history.setStyleSheet(f"background-color: #10b981; {style}")
+        btn_edit.setStyleSheet(f"background-color: #f59e0b; {style}")
+        btn_delete.setStyleSheet(f"background-color: #ef4444; {style}")
+
         btn_history.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_edit.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_delete.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        # Gán sự kiện
         btn_history.clicked.connect(lambda: self.open_history(item))
         btn_edit.clicked.connect(lambda: self.open_edit(item))
         btn_delete.clicked.connect(lambda: self.open_delete(item))
@@ -344,8 +343,7 @@ class CustomerManager:
         layout.addWidget(btn_history)
         layout.addWidget(btn_edit)
         layout.addWidget(btn_delete)
-        
-        # Cột Thao tác là index 4
+
         self.table.setCellWidget(row, 4, container)
 
     def open_history(self, item):

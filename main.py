@@ -14,7 +14,7 @@ from src.modules.Order import OrderManager
 from src.modules.Product import ProductManager
 from src.modules.Customer import CustomerManager
 from src.modules.Supplier import SupplierManager
-
+from src.modules.Employee import EmployeeManager
 from src.modules.Promotion import PromotionManager
 from src.modules.Product_Input import PurchaseManager
 # Lấy đường dẫn gốc của project
@@ -142,23 +142,23 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
         return dummy
 
     # --- CÁC HÀM KHỞI TẠO MODULE ---
-    
+
     def setup_module_overview(self):
         if not hasattr(self, 'tblDonHangGanDay'): return
-        
+
         # ĐỔI TÊN Ở 2 DÒNG NÀY CHO KHỚP VỚI HÌNH ẢNH:
         lbl_revenue = self.get_widget(['lblHienThiTongDoanhThu'], QtWidgets.QLabel)
         lbl_orders = self.get_widget(['lblHienThiTongDonHang'], QtWidgets.QLabel)
-        
+
         self.overview_manager = OverviewManager(self.tblDonHangGanDay, lbl_revenue, lbl_orders)
-        
+
         # --- Kế thừa chức năng nhảy trang Khách hàng từ bảng Đơn hàng gần đây ---
         def handle_switch_to_customer(customer_data):
             if hasattr(self, 'pageKhachHang'):
                 self.stackedWidget.setCurrentWidget(self.pageKhachHang)
             if hasattr(self, 'customer_manager'):
                 self.customer_manager.open_history(customer_data)
-                
+
         self.overview_manager.switch_to_customer_callback = handle_switch_to_customer
         # ------------------------------------------------------------------------
 
@@ -171,25 +171,30 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
 
     def setup_module_order(self):
         if not hasattr(self, 'tblDonHang'): return
-        
-        btn_prev = self.get_widget(['btnTruoc'], QtWidgets.QPushButton)
-        btn_next = self.get_widget(['btnSau'], QtWidgets.QPushButton)
-        lbl_status = self.get_widget(['lblHienThiDH'], QtWidgets.QLabel)
-        
-        self.order_manager = OrderManager(self.tblDonHang, btn_prev, btn_next, lbl_status)
-    
-        
+
+        # TÌM KIẾM VÀ LỌC: Đảm bảo deLocNgay được lấy bằng QLineEdit
+        txt_search_order = self.get_widget(['txtTimKiemDonHang', 'txtTimDonHang'], QtWidgets.QLineEdit)
+        de_filter_order = self.get_widget(['deLocNgay', 'deLocNgayDonHang'], QtWidgets.QLineEdit)
+        btn_search_order = self.get_widget(['btnTimDonHang', 'btnTimKiemDH'], QtWidgets.QPushButton)
+
+        # Khởi tạo OrderManager với các thanh tìm kiếm mới
+        self.order_manager = OrderManager(
+            table_widget=self.tblDonHang,
+            txt_search=txt_search_order,
+            date_filter=de_filter_order,
+            btn_search=btn_search_order
+        )
+
         # --- THÊM ĐOẠN NÀY ĐỂ KẾT NỐI VỚI MODULE KHÁCH HÀNG ---
         def handle_switch_to_customer(customer_data):
             # 1. Chuyển sang trang Khách hàng (nếu có)
             if hasattr(self, 'pageKhachHang'):
                 self.stackedWidget.setCurrentWidget(self.pageKhachHang)
-            
+
             # 2. Gọi hàm mở Lịch sử mua hàng của Khách hàng
             if hasattr(self, 'customer_manager'):
-                # Truyền data khách hàng sang cho hàm open_history
                 self.customer_manager.open_history(customer_data)
-                
+
         # Gán callback vào OrderManager
         self.order_manager.switch_to_customer_callback = handle_switch_to_customer
         # -----------------------------------------------------
@@ -201,27 +206,27 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
 
     # def setup_module_invoice(self):
     #     if not hasattr(self, 'tblHoaDon'): return
-        
+
     #     btn_prev = self.get_widget(['btnTruoc_3'], QtWidgets.QPushButton)
     #     btn_next = self.get_widget(['btnSau_3'], QtWidgets.QPushButton)
     #     lbl_status = self.get_widget(['lblHienThiHD'], QtWidgets.QLabel)
-        
+
     #     self.invoice_manager = InvoiceManager(self.tblHoaDon, btn_prev, btn_next, lbl_status)
-        
+
     #     if hasattr(self, 'btnHoaDon'):
     #         self.btnHoaDon.clicked.connect(lambda: self.change_page(self.pageHoaDon, self.invoice_manager.load_data))
 
     def setup_module_product(self):
         if not hasattr(self, 'tblDanhSachSP'): return
-        
+
         txt_search = self.get_widget(['txtTimSP_2'], QtWidgets.QLineEdit)
         cb_cat = self.get_widget(['cbDanhMuc'], QtWidgets.QComboBox)
         cb_sup = self.get_widget(['cbNhaCungCap'], QtWidgets.QComboBox)
-        
+
         self.product_manager = ProductManager(self.tblDanhSachSP, txt_search, cb_cat, cb_sup)
-        
+
         # --- THIẾT LẬP CALLBACK CHO MODULE SẢN PHẨM ---
-        
+
         # 1. Callback khi click tên Danh Mục
         def handle_switch_to_category(cat_id, cat_name):
             if hasattr(self, 'pageDanhMuc'):
@@ -250,14 +255,14 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
 
     def setup_module_category(self):
         if not hasattr(self, 'tblDanhMuc'): return
-        
+
         # Lấy thêm ô tìm kiếm và nút tìm kiếm (nếu có trên giao diện)
         txt_search = self.get_widget(['txtTimKiemDanhMuc'], QtWidgets.QLineEdit)
         btn_search = self.get_widget(['btnTimKiemDanhMuc'], QtWidgets.QPushButton)
-        
+
         # Truyền vào Manager
         self.category_manager = DanhMucManager(self.tblDanhMuc, txt_search, btn_search)
-        
+
         if hasattr(self, 'btnDanhMuc'):
             self.btnDanhMuc.clicked.connect(lambda: self.change_page(self.pageDanhMuc, self.category_manager.load_data))
         if hasattr(self, 'btnThemDanhMuc'):
@@ -290,7 +295,7 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
             )
         if hasattr(self, 'btnThemKhuyenMai'):
             self.btnThemKhuyenMai.clicked.connect(self.promotion_manager.open_add)
-        
+
     def setup_module_purchase(self):
         """
         Module Nhập Hàng.
@@ -339,33 +344,55 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
             self.btnThemNCC.clicked.connect(self.supplier_manager.open_add)
 
     def setup_module_employee(self):
-        # TODO: Điền thông tin set up nhân viên khi có file Employee.py
-        pass
+            # Tìm bảng danh sách nhân viên trong giao diện
+            tbl_nv = self.get_widget(['tblDanhSachNV', 'tblNhanVien', 'tblDanhSachNhanVien'], QtWidgets.QTableWidget)
+
+            # Nếu không tìm thấy bảng thì bỏ qua để không bị crash
+            if getattr(tbl_nv, 'isHidden', lambda: True)():
+                if not hasattr(self, 'tblDanhSachNV') and not hasattr(self, 'tblNhanVien'):
+                    return
+
+            txt_search = self.get_widget(['txtTimKiemNV', 'txtTimNhanVien'], QtWidgets.QLineEdit)
+            btn_search = self.get_widget(['btnTimKiemNV', 'btnTimNhanVien'], QtWidgets.QPushButton)
+
+            # Khởi tạo EmployeeManager
+            self.employee_manager = EmployeeManager(tbl_nv, txt_search, btn_search)
+
+            # Kết nối sự kiện nút Menu bên trái
+            if hasattr(self, 'btnNhanVien'):
+                self.btnNhanVien.clicked.connect(
+                    lambda: self.change_page(self.pageNhanVien, self.employee_manager.load_data)
+                )
+
+            # Kết nối sự kiện nút Thêm Nhân viên
+            btn_add = self.get_widget(['btnThemNhanVien', 'btnThemNV'], QtWidgets.QPushButton)
+            if btn_add and not btn_add.isHidden():
+                btn_add.clicked.connect(self.employee_manager.open_add)
 
 
 # ==========================================
-# CÁC CỬA SỔ CHÍNH THEO TỪNG ROLE 
+# CÁC CỬA SỔ CHÍNH THEO TỪNG ROLE
 # ==========================================
 
 class ManagerWindow(BaseRoleWindow):
     def __init__(self, emp_id, login_window):
         super().__init__(emp_id, login_window)
         uic.loadUi(os.path.join(UI_DIR, "QuanLyCuaHang", "mainQLCH.ui"), self)
-        
+
         self.setup_common_events()
-        
+
         self.setup_module_overview()
         self.setup_module_order()
         self.setup_module_product()
         self.setup_module_category()
         self.setup_module_supplier()
         self.setup_module_customer()
-        
+
         # Gọi thêm các module mới cho Quản lý
         self.setup_module_promotion()
         self.setup_module_purchase()
         self.setup_module_employee()
-        
+
         # ---> NÚT ĐẦU TIÊN CỦA QUẢN LÝ LÀ: TỔNG QUAN <---
         if hasattr(self, 'pageTongQuan') and hasattr(self, 'overview_manager'):
             self.change_page(self.pageTongQuan, self.overview_manager.load_data)
@@ -375,9 +402,9 @@ class SalesWindow(BaseRoleWindow):
     def __init__(self, emp_id, login_window):
         super().__init__(emp_id, login_window)
         uic.loadUi(os.path.join(UI_DIR, "NhanVienBanHang", "mainNVBH.ui"), self)
-        
+
         self.setup_common_events()
-        
+
         self.setup_module_category()
         self.setup_module_order()
         self.setup_module_customer()
@@ -393,9 +420,9 @@ class WarehouseWindow(BaseRoleWindow):
     def __init__(self, emp_id, login_window):
         super().__init__(emp_id, login_window)
         uic.loadUi(os.path.join(UI_DIR, "NhanVienKho", "mainNVK.ui"), self)
-        
+
         self.setup_common_events()
-        
+
         self.setup_module_category()
         self.setup_module_supplier()
         self.setup_module_product()
