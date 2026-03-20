@@ -472,10 +472,7 @@ QDateEdit::drop-down {
                </widget>
               </item>
               <item>
-               <widget class="QDateEdit" name="deLocNgay"/>
-              </item>
-              <item>
-               <widget class="QComboBox" name="cbLocTrangThai"/>
+               <widget class="QLineEdit" name="deLocNgay"/>
               </item>
               <item>
                <spacer name="horizontalSpacer">

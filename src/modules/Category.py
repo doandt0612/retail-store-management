@@ -1,10 +1,10 @@
 import os
 from PyQt6 import uic, QtWidgets
 from PyQt6.QtCore import Qt
-from src.database.db_connection import DatabaseManager 
+from src.database.db_connection import DatabaseManager
 
 # Lấy đường dẫn thư mục
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__)) 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CURRENT_DIR))
 UI_PATH = os.path.join(ROOT_DIR, "ui", "modules_ui", "DanhMuc")
 
@@ -91,50 +91,62 @@ class AddDanhMuc(QtWidgets.QDialog):
             conn.close()
 
 
-#  DIALOG SỬA DANH MỤC 
 #  DIALOG SỬA DANH MỤC
 class EditDanhMuc(QtWidgets.QDialog):
-    # Thêm tham số parent để chống đơ/crash
     def __init__(self, data, parent=None):
         super().__init__(parent)
         uic.loadUi(os.path.join(UI_PATH, "editDanhMuc.ui"), self)
-
-        # Khóa tương tác với cửa sổ phía sau
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.category_id = data['id']
 
-        # KIỂM TRA VÀ ĐIỀN DỮ LIỆU CŨ LÊN GIAO DIỆN
-        try:
-            # Trường hợp 1: Nếu file UI đã đặt tên chuẩn
-            self.txtTenDanhMuc.setText(data['ten'])
-            self.txtMoTaDanhMuc.setText(data['mota'] if data['mota'] else "")
+        # Cho phép gõ tự do hoặc chọn từ danh sách
+        self.cbDanhMuc.setEditable(True)
+        self.cbTenSP.setEditable(True)
 
-            self.btnLuu.clicked.connect(self.update_data)
-            self.btnHuy.clicked.connect(self.reject)
-        except AttributeError:
-            # Trường hợp 2: Nếu file UI bị nhầm tên giống file addDanhMuc.ui
-            self.cbDanhMuc.setEditable(True)
-            self.cbTenSP.setEditable(True)
+        # Hiển thị mã danh mục (chỉ đọc)
+        if hasattr(self, 'txtReadOnlyMaSP'):
+            self.txtReadOnlyMaSP.setText(str(self.category_id))
 
-            # Hiển thị mã danh mục (chỉ đọc)
-            if hasattr(self, 'txtReadOnlyMaSP'):
-                self.txtReadOnlyMaSP.setText(str(self.category_id))
+        # Load danh sách tên danh mục & mô tả từ DB vào ComboBox
+        self._load_combos(data)
 
-            # Hiển thị Tên và Mô tả cũ
-            self.cbDanhMuc.setCurrentText(data['ten'])
+        self.btnLuu.clicked.connect(self.update_data)
+        self.btnHuy.clicked.connect(self.reject)
+
+    def _load_combos(self, data):
+        """Điền tên hiện tại vào cbDanhMuc, load danh sách mô tả vào cbTenSP."""
+        # cbDanhMuc: chỉ điền tên hiện tại để chỉnh sửa, không load danh sách tên khác
+        # (tránh lỗi UNIQUE KEY khi chọn nhầm tên đã có)
+        self.cbDanhMuc.clear()
+        self.cbDanhMuc.setCurrentText(data['ten'])
+
+        # cbTenSP: load danh sách mô tả từ DB để gợi ý
+        db = DatabaseManager()
+        conn = db.get_connection()
+        if not conn:
             self.cbTenSP.setCurrentText(data['mota'] if data['mota'] else "")
+            return
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT DISTINCT DESCRIPTION FROM CATEGORIES "
+                "WHERE DESCRIPTION IS NOT NULL AND DESCRIPTION <> '' ORDER BY DESCRIPTION"
+            )
+            mo_ta_list = [r[0] for r in cursor.fetchall()]
+            self.cbTenSP.clear()
+            for mo_ta in mo_ta_list:
+                self.cbTenSP.addItem(mo_ta)
+        except Exception as e:
+            print(f"[EditDanhMuc] Lỗi load combo: {e}")
+        finally:
+            conn.close()
 
-            self.btnLuu.clicked.connect(self.update_data)
-            self.btnHuy.clicked.connect(self.reject)
+        # Chọn sẵn mô tả hiện tại
+        self.cbTenSP.setCurrentText(data['mota'] if data['mota'] else "")
 
     def update_data(self):
-        # Lấy dữ liệu an toàn dựa trên loại giao diện đang dùng
-        if hasattr(self, 'txtTenDanhMuc'):
-            ten_dm = self.txtTenDanhMuc.text().strip()
-            mo_ta = self.txtMoTaDanhMuc.text().strip()
-        else:
-            ten_dm = self.cbDanhMuc.currentText().strip()
-            mo_ta = self.cbTenSP.currentText().strip()
+        ten_dm = self.cbDanhMuc.currentText().strip()
+        mo_ta = self.cbTenSP.currentText().strip()
 
         if not ten_dm:
             QtWidgets.QMessageBox.warning(self, "Lỗi", "Vui lòng nhập tên danh mục!")
@@ -144,14 +156,13 @@ class EditDanhMuc(QtWidgets.QDialog):
         conn = db.get_connection()
         if not conn:
             return
-
         try:
             cursor = conn.cursor()
-            # Cập nhật vào DB theo Mã danh mục (kiểu int)
-            cursor.execute("UPDATE CATEGORIES SET CATEGORYNAME = ?, DESCRIPTION = ? WHERE CATEGORYID = ?",
-                           (ten_dm, mo_ta, self.category_id))
+            cursor.execute(
+                "UPDATE CATEGORIES SET CATEGORYNAME = ?, DESCRIPTION = ? WHERE CATEGORYID = ?",
+                (ten_dm, mo_ta, self.category_id)
+            )
             conn.commit()
-
             QtWidgets.QMessageBox.information(self, "Thành công", "Cập nhật danh mục thành công!")
             self.accept()
         except Exception as e:
@@ -165,14 +176,14 @@ class EditDanhMuc(QtWidgets.QDialog):
 class DeleteDanhMuc(QtWidgets.QDialog):
     def __init__(self, data):
         super().__init__()
-        uic.loadUi(os.path.join(UI_PATH, "deleteDanhMuc.ui"), self) 
-        
+        uic.loadUi(os.path.join(UI_PATH, "deleteDanhMuc.ui"), self)
+
         self.category_id = data['id']
         self.category_name = data['ten']
-        
+
         # Hiển thị thông báo lên giao diện
         self.lblCanhBao.setText(f"Bạn có chắc muốn xóa danh mục:\n{self.category_name}?")
-        
+
         self.btnXoa.clicked.connect(self.delete_data)
         self.btnHuy.clicked.connect(self.reject)
 
@@ -180,21 +191,21 @@ class DeleteDanhMuc(QtWidgets.QDialog):
         db = DatabaseManager()
         conn = db.get_connection()
         if not conn: return
-        
+
         try:
             cursor = conn.cursor()
-            
+
             # KIỂM TRA RÀNG BUỘC: Có sản phẩm nào thuộc danh mục này không?
             cursor.execute("SELECT COUNT(*) FROM PRODUCTS WHERE CATEGORYID = ?", (self.category_id,))
             if cursor.fetchone()[0] > 0:
-                QtWidgets.QMessageBox.warning(self, "Cảnh báo", 
-                    f"Không thể xóa '{self.category_name}' vì đang có sản phẩm thuộc danh mục này. Vui lòng xóa/chuyển các sản phẩm đó trước!")
+                QtWidgets.QMessageBox.warning(self, "Cảnh báo",
+                                              f"Không thể xóa '{self.category_name}' vì đang có sản phẩm thuộc danh mục này. Vui lòng xóa/chuyển các sản phẩm đó trước!")
                 return
-            
+
             # Nếu không vướng sản phẩm, tiến hành xóa
             cursor.execute("DELETE FROM CATEGORIES WHERE CATEGORYID = ?", (self.category_id,))
             conn.commit()
-            
+
             QtWidgets.QMessageBox.information(self, "Thành công", "Xóa danh mục thành công!")
             self.accept()
         except Exception as e:
@@ -202,7 +213,6 @@ class DeleteDanhMuc(QtWidgets.QDialog):
             QtWidgets.QMessageBox.critical(self, "Lỗi", f"Lỗi hệ thống: {str(e)}")
         finally:
             conn.close()
-
 
 
 # BỘ QUẢN LÝ (CONTROLLER CHO MAIN WINDOW)
