@@ -467,21 +467,20 @@ class ViewEmployeeFullTime(QtWidgets.QDialog):
 
 
 class ViewEmployeePartTime(QtWidgets.QDialog):
-    class ViewEmployeePartTime(QtWidgets.QDialog):
-        def __init__(self, emp_id, parent=None):
-            super().__init__(parent)
-            uic.loadUi(os.path.join(UI_PATH, "viewNhanVienPartTime.ui"), self)
+    def __init__(self, emp_id, parent=None):
+        super().__init__(parent)
+        uic.loadUi(os.path.join(UI_PATH, "viewNhanVienPartTime.ui"), self)
 
-            self.emp_id = emp_id
-            self.load_data()
+        self.emp_id = emp_id
+        self.load_data()
 
-            if hasattr(self, 'btnSua'):
-                self.btnSua.clicked.connect(self.open_edit)
+        if hasattr(self, 'btnSua'):
+            self.btnSua.clicked.connect(self.open_edit)
 
-        def open_edit(self):
-            """Đóng form Xem và mở form Sửa lên thay thế"""
-            self.accept()
-            EditEmployeePartTime(self.emp_id, self.parent()).exec()
+    def open_edit(self):
+        """Đóng form Xem và mở form Sửa lên thay thế"""
+        self.accept()
+        EditEmployeePartTime(self.emp_id, self.parent()).exec()
 
     def load_data(self):
         db = DatabaseManager()
@@ -595,9 +594,10 @@ class DeleteEmployee(QtWidgets.QDialog):
 # 5. CONTROLLER: EMPLOYEE MANAGER
 # ==========================================
 class EmployeeManager:
-    def __init__(self, table_widget, txt_search=None, btn_search=None):
+    def __init__(self, table_widget, txt_search=None, btn_search=None, cb_type=None):
         self.table = table_widget
         self.txt_search = txt_search
+        self.cb_type = cb_type
 
         self.init_ui_style()
 
@@ -605,23 +605,20 @@ class EmployeeManager:
             btn_search.clicked.connect(self.on_search_triggered)
         if txt_search:
             txt_search.textChanged.connect(self.on_search_triggered)
+        if self.cb_type:
+            self.cb_type.currentIndexChanged.connect(self.on_search_triggered)
 
     def on_search_triggered(self, *args):
         self.load_data()
 
     def init_ui_style(self):
-        # 1. Tăng lên 6 cột và bổ sung "Loại NV"
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["Mã NV", "Tên NV", "Loại NV", "SĐT", "Email", "Thao tác"])
-
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-
-        # Cố định kích thước cột Thao tác (Bây giờ là cột số 6 -> index 5)
         header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeMode.Fixed)
         self.table.setColumnWidth(5, 210)
 
@@ -630,62 +627,54 @@ class EmployeeManager:
         conn = db.get_connection()
         if not conn: return
 
-        search_kw = ""
-        if hasattr(self, 'txt_search') and self.txt_search is not None:
-            search_kw = self.txt_search.text().strip()
+        search_kw = self.txt_search.text().strip() if self.txt_search else ""
+        type_kw   = self.cb_type.currentText() if self.cb_type else "Tất cả"
 
         try:
             cursor = conn.cursor()
-            # Bổ sung lấy thêm cột Status (row[5]) để kiểm tra
             query = """
                 SELECT EmployeeID, EmployeeName, EmployeePhone, EmployeeEmail, EmployeeType, Status 
-                FROM Employees
+                FROM Employees WHERE 1=1
             """
-            params = ()
+            params = []
+
             if search_kw:
-                query += " WHERE EmployeeName LIKE ? OR EmployeePhone LIKE ?"
-                params = (f"%{search_kw}%", f"%{search_kw}%")
+                query += " AND (EmployeeName LIKE ? OR EmployeePhone LIKE ?)"
+                params.extend([f"%{search_kw}%", f"%{search_kw}%"])
+
+            # Lọc theo loại nhân viên
+            if type_kw == "Toàn thời gian":
+                query += " AND EmployeeType = 'Full_time'"
+            elif type_kw == "Bán thời gian":
+                query += " AND EmployeeType = 'Part_time'"
 
             query += " ORDER BY EmployeeID DESC"
-
-            cursor.execute(query, params)
+            cursor.execute(query, tuple(params))
             rows = cursor.fetchall()
 
             self.table.setRowCount(0)
             for row_idx, row in enumerate(rows):
                 self.table.insertRow(row_idx)
 
-                # KIỂM TRA TRẠNG THÁI NGHỈ VIỆC
                 is_nghi_viec = (row[5] == "Đã nghỉ việc")
 
-                # Chuẩn bị dữ liệu cho từng ô
-                item_ma = QtWidgets.QTableWidgetItem(str(row[0]))
-
-                # Thêm hậu tố (Đã nghỉ) vào tên nếu họ đã nghỉ việc
+                item_ma   = QtWidgets.QTableWidgetItem(str(row[0]))
                 ten_hien_thi = f"{row[1]} (Đã nghỉ)" if is_nghi_viec else row[1]
-                item_ten = QtWidgets.QTableWidgetItem(ten_hien_thi)
-
-                loai_nv = "Toàn thời gian" if row[4] == "Full_time" else "Bán thời gian"
+                item_ten  = QtWidgets.QTableWidgetItem(ten_hien_thi)
+                loai_nv   = "Toàn thời gian" if row[4] == "Full_time" else "Bán thời gian"
                 item_loai = QtWidgets.QTableWidgetItem(loai_nv)
+                item_sdt  = QtWidgets.QTableWidgetItem(row[2])
+                item_email= QtWidgets.QTableWidgetItem(row[3] if row[3] else "")
 
-                item_sdt = QtWidgets.QTableWidgetItem(row[2])
-                item_email = QtWidgets.QTableWidgetItem(row[3] if row[3] else "")
-
-                # ĐỔI MÀU NHẬN DIỆN GIAO DIỆN
                 if is_nghi_viec:
-                    # Tên bôi màu Đỏ nổi bật
+                    for it in [item_ma, item_ten, item_loai, item_sdt, item_email]:
+                        it.setForeground(Qt.GlobalColor.gray)
                     item_ten.setForeground(Qt.GlobalColor.red)
-                    # Các thông tin khác bị làm mờ thành màu Xám
-                    item_ma.setForeground(Qt.GlobalColor.gray)
-                    item_loai.setForeground(Qt.GlobalColor.gray)
-                    item_sdt.setForeground(Qt.GlobalColor.gray)
-                    item_email.setForeground(Qt.GlobalColor.gray)
                 else:
-                    # Người đang làm việc thì tô màu xanh/tím cho Loại NV như bình thường
                     item_loai.setForeground(
-                        Qt.GlobalColor.darkBlue if row[4] == "Full_time" else Qt.GlobalColor.darkMagenta)
+                        Qt.GlobalColor.darkBlue if row[4] == "Full_time" else Qt.GlobalColor.darkMagenta
+                    )
 
-                # Đổ vào bảng
                 self.table.setItem(row_idx, 0, item_ma)
                 self.table.setItem(row_idx, 1, item_ten)
                 self.table.setItem(row_idx, 2, item_loai)
@@ -706,8 +695,8 @@ class EmployeeManager:
         layout.setContentsMargins(5, 2, 5, 2)
         layout.setSpacing(5)
 
-        btn_view = QtWidgets.QPushButton("Xem")
-        btn_edit = QtWidgets.QPushButton("Sửa")
+        btn_view   = QtWidgets.QPushButton("Xem")
+        btn_edit   = QtWidgets.QPushButton("Sửa")
         btn_delete = QtWidgets.QPushButton("Xóa")
 
         style = "padding: 5px; font-weight: bold; border-radius: 4px; color: white;"
@@ -719,15 +708,14 @@ class EmployeeManager:
         btn_edit.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_delete.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        btn_view.clicked.connect(lambda: self.open_view(item))
-        btn_edit.clicked.connect(lambda: self.open_edit(item))
-        btn_delete.clicked.connect(lambda: self.open_delete(item))
+        # Fix lambda closure bug
+        btn_view.clicked.connect(lambda checked=False, d=item: self.open_view(d))
+        btn_edit.clicked.connect(lambda checked=False, d=item: self.open_edit(d))
+        btn_delete.clicked.connect(lambda checked=False, d=item: self.open_delete(d))
 
         layout.addWidget(btn_view)
         layout.addWidget(btn_edit)
         layout.addWidget(btn_delete)
-
-        # 3. Dịch chuyển bộ nút Thao tác sang cột số 6 (index 5)
         self.table.setCellWidget(row, 5, container)
 
     def open_view(self, item):

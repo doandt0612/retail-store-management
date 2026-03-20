@@ -344,30 +344,31 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
             self.btnThemNCC.clicked.connect(self.supplier_manager.open_add)
 
     def setup_module_employee(self):
-            # Tìm bảng danh sách nhân viên trong giao diện
-            tbl_nv = self.get_widget(['tblDanhSachNV', 'tblNhanVien', 'tblDanhSachNhanVien'], QtWidgets.QTableWidget)
+        tbl_nv = self.get_widget(['tblDanhSachNV', 'tblNhanVien', 'tblDanhSachNhanVien'], QtWidgets.QTableWidget)
 
-            # Nếu không tìm thấy bảng thì bỏ qua để không bị crash
-            if getattr(tbl_nv, 'isHidden', lambda: True)():
-                if not hasattr(self, 'tblDanhSachNV') and not hasattr(self, 'tblNhanVien'):
-                    return
+        if not hasattr(self, 'tblDanhSachNV') and not hasattr(self, 'tblNhanVien') and not hasattr(self, 'tblDanhSachNhanVien'):
+            return
 
-            txt_search = self.get_widget(['txtTimKiemNV', 'txtTimNhanVien'], QtWidgets.QLineEdit)
-            btn_search = self.get_widget(['btnTimKiemNV', 'btnTimNhanVien'], QtWidgets.QPushButton)
+        txt_search = self.get_widget(['txtTimKiemNV', 'txtTimNhanVien'], QtWidgets.QLineEdit)
+        btn_search = self.get_widget(['btnTimKiemNV', 'btnTimNhanVien'], QtWidgets.QPushButton)
 
-            # Khởi tạo EmployeeManager
-            self.employee_manager = EmployeeManager(tbl_nv, txt_search, btn_search)
+        # Dùng hasattr để lấy widget thật, populate items
+        cb_type = None
+        if hasattr(self, 'cbLocLoaiNV'):
+            self.cbLocLoaiNV.clear()
+            self.cbLocLoaiNV.addItems(["Tất cả", "Toàn thời gian", "Bán thời gian"])
+            cb_type = self.cbLocLoaiNV
 
-            # Kết nối sự kiện nút Menu bên trái
-            if hasattr(self, 'btnNhanVien'):
-                self.btnNhanVien.clicked.connect(
-                    lambda: self.change_page(self.pageNhanVien, self.employee_manager.load_data)
-                )
+        self.employee_manager = EmployeeManager(tbl_nv, txt_search, btn_search, cb_type)
 
-            # Kết nối sự kiện nút Thêm Nhân viên
-            btn_add = self.get_widget(['btnThemNhanVien', 'btnThemNV'], QtWidgets.QPushButton)
-            if btn_add and not btn_add.isHidden():
-                btn_add.clicked.connect(self.employee_manager.open_add)
+        if hasattr(self, 'btnNhanVien'):
+            self.btnNhanVien.clicked.connect(
+                lambda: self.change_page(self.pageNhanVien, self.employee_manager.load_data)
+            )
+
+        btn_add = self.get_widget(['btnThemNhanVien', 'btnThemNV'], QtWidgets.QPushButton)
+        if btn_add and not btn_add.isHidden():
+            btn_add.clicked.connect(self.employee_manager.open_add)
 
 
 # ==========================================
