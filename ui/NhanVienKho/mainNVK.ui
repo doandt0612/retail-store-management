@@ -275,7 +275,7 @@ QWidget {
 }</string>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="pageDanhMuc">
           <property name="styleSheet">
@@ -1204,28 +1204,43 @@ QDateEdit::drop-down {
               <item>
                <widget class="QLineEdit" name="txtTimKiemDonNhap">
                 <property name="placeholderText">
-                 <string>Nhập mã đơn nhập hàng...</string>
+                 <string>Nhập mã đơn nhập hàng hoặc tên NCC...</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QDateEdit" name="deLocNgay_2"/>
+               <widget class="QLabel" name="lblTuNgayNH">
+                <property name="text">
+                 <string>Từ:</string>
+                </property>
+               </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="cbLocNCC"/>
+               <widget class="QDateEdit" name="deLocNgay_2">
+                <property name="displayFormat">
+                 <string>dd/MM/yyyy</string>
+                </property>
+                <property name="calendarPopup">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item>
-               <spacer name="horizontalSpacer_14">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
+               <widget class="QLabel" name="lblDenNgayNH">
+                <property name="text">
+                 <string>Đến:</string>
                 </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>140</width>
-                  <height>13</height>
-                 </size>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDateEdit" name="deLocNgayDen_2">
+                <property name="displayFormat">
+                 <string>dd/MM/yyyy</string>
                 </property>
-               </spacer>
+                <property name="calendarPopup">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QPushButton" name="btnTimKiemDonNhap">
@@ -1313,7 +1328,7 @@ QDateEdit::drop-down {
      <x>0</x>
      <y>0</y>
      <width>910</width>
-     <height>21</height>
+     <height>18</height>
     </rect>
    </property>
   </widget>

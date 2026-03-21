@@ -723,12 +723,16 @@ class AddOrder(QtWidgets.QDialog):
 # BỘ QUẢN LÝ ĐƠN HÀNG (CONTROLLER)
 # ==========================================
 class OrderManager:
-    def __init__(self, table_widget, txt_search=None, date_filter=None, btn_search=None):
+    def __init__(self, table_widget, txt_search=None, date_filter=None, btn_search=None, cb_status=None,
+                 dte_from=None, dte_to=None, cb_customer=None):
         self.table = table_widget
         self.txt_search = txt_search
         self.date_filter = date_filter
         self.btn_search = btn_search
-        self.cb_status = None  # Sẽ được tạo động trong init_ui
+        self.cb_status   = cb_status   # Nhận trực tiếp từ UI widget
+        self.dte_from    = dte_from    # QDateEdit — từ ngày
+        self.dte_to      = dte_to      # QDateEdit — đến ngày
+        self.cb_customer = cb_customer # QComboBox — lọc theo khách hàng
 
         self.switch_to_customer_callback = None
 
@@ -740,6 +744,14 @@ class OrderManager:
             self.txt_search.textChanged.connect(self.on_search_triggered)
         if self.date_filter:
             self.date_filter.textChanged.connect(self.on_search_triggered)
+        if self.cb_status:
+            self.cb_status.currentIndexChanged.connect(self.on_search_triggered)
+        if self.dte_from:
+            self.dte_from.dateChanged.connect(self.on_search_triggered)
+        if self.dte_to:
+            self.dte_to.dateChanged.connect(self.on_search_triggered)
+        if self.cb_customer:
+            self.cb_customer.currentIndexChanged.connect(self.on_search_triggered)
 
     def on_search_triggered(self, *args):
         self.load_data()
@@ -836,8 +848,40 @@ class OrderManager:
             """)
             self.date_filter.setPlaceholderText("VD: 03/2026, 2026, 02/03...")
 
-        # Tạo ComboBox lọc trạng thái động
-        self.cb_status = self._create_status_combobox()
+        # Populate cb_status nếu được truyền vào từ UI
+        if self.cb_status:
+            self.cb_status.blockSignals(True)
+            self.cb_status.clear()
+            self.cb_status.addItems(["Tất cả", "Đã thanh toán", "Chưa thanh toán"])
+            self.cb_status.blockSignals(False)
+
+        # Khởi tạo bộ lọc ngày
+        from PyQt6.QtCore import QDate
+        if self.dte_from:
+            self.dte_from.setCalendarPopup(True)
+            self.dte_from.setDisplayFormat("dd/MM/yyyy")
+            self.dte_from.setDate(QDate(QDate.currentDate().year(), 1, 1))
+        if self.dte_to:
+            self.dte_to.setCalendarPopup(True)
+            self.dte_to.setDisplayFormat("dd/MM/yyyy")
+            self.dte_to.setDate(QDate.currentDate())
+
+        # Populate cb_customer — lọc theo khách hàng
+        if self.cb_customer:
+            db = DatabaseManager()
+            conn = db.get_connection()
+            if conn:
+                try:
+                    self.cb_customer.blockSignals(True)
+                    self.cb_customer.clear()
+                    self.cb_customer.addItem("Tất cả KH", 0)
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT CustomerID, CustomerName FROM Customers ORDER BY CustomerName")
+                    for cid, cname in cursor.fetchall():
+                        self.cb_customer.addItem(cname, cid)
+                    self.cb_customer.blockSignals(False)
+                finally:
+                    conn.close()
 
     def load_data(self):
         db = DatabaseManager()
@@ -879,6 +923,23 @@ class OrderManager:
             if status_kw and status_kw != "Tất cả":
                 query += " AND o.Status = ?"
                 params.append(status_kw)
+
+            # Lọc theo khoảng thời gian
+            if self.dte_from:
+                date_from = self.dte_from.date().toPyDate()
+                query += " AND CAST(o.OrderDate AS DATE) >= ?"
+                params.append(date_from)
+            if self.dte_to:
+                date_to = self.dte_to.date().toPyDate()
+                query += " AND CAST(o.OrderDate AS DATE) <= ?"
+                params.append(date_to)
+
+            # Lọc theo khách hàng
+            if self.cb_customer:
+                cus_val = self.cb_customer.currentData()
+                if cus_val:
+                    query += " AND c.CustomerID = ?"
+                    params.append(cus_val)
 
             query += " ORDER BY o.OrderDate DESC"
 

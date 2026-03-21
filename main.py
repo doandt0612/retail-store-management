@@ -172,35 +172,36 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
     def setup_module_order(self):
         if not hasattr(self, 'tblDonHang'): return
 
-        # TÌM KIẾM VÀ LỌC: Đảm bảo deLocNgay được lấy bằng QLineEdit
-        txt_search_order = self.get_widget(['txtTimKiemDonHang', 'txtTimDonHang'], QtWidgets.QLineEdit)
-        de_filter_order = self.get_widget(['deLocNgay', 'deLocNgayDonHang'], QtWidgets.QLineEdit)
-        btn_search_order = self.get_widget(['btnTimDonHang', 'btnTimKiemDH'], QtWidgets.QPushButton)
+        txt_search   = self.get_widget(['txtTimKiemDonHang', 'txtTimDonHang'],                  QtWidgets.QLineEdit)
+        btn_search   = self.get_widget(['btnTimKiemDonHang', 'btnTimDonHang', 'btnTimKiemDH'],  QtWidgets.QPushButton)
+        cb_status    = self.get_widget(['cbLocTrangThai'],                                       QtWidgets.QComboBox)
+        dte_from     = self.get_widget(['deLocNgayTu',  'dteFromDH'],                            QtWidgets.QDateEdit)
+        dte_to       = self.get_widget(['deLocNgayDen', 'dteToDH'],                              QtWidgets.QDateEdit)
+        cb_customer  = self.get_widget(['cbLocKhachHang', 'cbKhachHang'],                        QtWidgets.QComboBox)
 
-        # Khởi tạo OrderManager với các thanh tìm kiếm mới
         self.order_manager = OrderManager(
-            table_widget=self.tblDonHang,
-            txt_search=txt_search_order,
-            date_filter=de_filter_order,
-            btn_search=btn_search_order
+            table_widget = self.tblDonHang,
+            txt_search   = txt_search,
+            date_filter  = None,
+            btn_search   = btn_search,
+            cb_status    = cb_status   if not cb_status.isHidden()   else None,
+            dte_from     = dte_from    if not dte_from.isHidden()    else None,
+            dte_to       = dte_to      if not dte_to.isHidden()      else None,
+            cb_customer  = cb_customer if not cb_customer.isHidden() else None,
         )
 
-        # --- THÊM ĐOẠN NÀY ĐỂ KẾT NỐI VỚI MODULE KHÁCH HÀNG ---
         def handle_switch_to_customer(customer_data):
-            # 1. Chuyển sang trang Khách hàng (nếu có)
             if hasattr(self, 'pageKhachHang'):
                 self.stackedWidget.setCurrentWidget(self.pageKhachHang)
-
-            # 2. Gọi hàm mở Lịch sử mua hàng của Khách hàng
             if hasattr(self, 'customer_manager'):
                 self.customer_manager.open_history(customer_data)
 
-        # Gán callback vào OrderManager
         self.order_manager.switch_to_customer_callback = handle_switch_to_customer
-        # -----------------------------------------------------
 
         if hasattr(self, 'btnDonHang'):
-            self.btnDonHang.clicked.connect(lambda: self.change_page(self.pageDonHang, self.order_manager.load_data))
+            self.btnDonHang.clicked.connect(
+                lambda: self.change_page(self.pageDonHang, self.order_manager.load_data)
+            )
         if hasattr(self, 'btnTaoDonHang'):
             self.btnTaoDonHang.clicked.connect(self.order_manager.open_create)
 
@@ -219,11 +220,15 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
     def setup_module_product(self):
         if not hasattr(self, 'tblDanhSachSP'): return
 
-        txt_search = self.get_widget(['txtTimSP_2'], QtWidgets.QLineEdit)
-        cb_cat = self.get_widget(['cbDanhMuc'], QtWidgets.QComboBox)
-        cb_sup = self.get_widget(['cbNhaCungCap'], QtWidgets.QComboBox)
+        txt_search = self.get_widget(['txtTimKiemSP', 'txtTimSP_2', 'txtTimSP', 'txtSearchSP'], QtWidgets.QLineEdit)
+        btn_search = self.get_widget(['btnTimKiemSP', 'btnTimSP', 'btnSearchSP'], QtWidgets.QPushButton)
+        cb_cat = self.get_widget(['cbDanhMuc', 'cbLocDanhMuc'], QtWidgets.QComboBox)
+        cb_sup = self.get_widget(['cbNhaCungCap', 'cbLocNCC'], QtWidgets.QComboBox)
 
         self.product_manager = ProductManager(self.tblDanhSachSP, txt_search, cb_cat, cb_sup)
+
+        if btn_search and not btn_search.isHidden():
+            btn_search.clicked.connect(self.product_manager.load_data)
 
         # --- THIẾT LẬP CALLBACK CHO MODULE SẢN PHẨM ---
 
@@ -284,40 +289,60 @@ class BaseRoleWindow(QtWidgets.QMainWindow):
     def setup_module_promotion(self):
         if not hasattr(self, 'tblDanhSachKM'): return
 
-        txt_search = self.get_widget(['txtTimKhuyenMai'], QtWidgets.QLineEdit)
-        cb_status  = self.get_widget(['cbTrangThaiKM'],   QtWidgets.QComboBox)
+        txt_search = self.get_widget(['txtTimKiemKM', 'txtTimKhuyenMai', 'txtTimKM', 'txtSearchKM'], QtWidgets.QLineEdit)
+        cb_status  = self.get_widget(['cbTrangThaiKM', 'cbLocTrangThaiKM'],          QtWidgets.QComboBox)
+        dte_from   = self.get_widget(['deLocNgayBatDauKM', 'dteNgayBatDauKM', 'dteFromKM'], QtWidgets.QDateEdit)
+        dte_to     = self.get_widget(['deLocNgayKetThucKM', 'dteNgayKetThucKM', 'dteToKM'], QtWidgets.QDateEdit)
+        lbl_count  = self.get_widget(['lblSoLuongKM', 'lblCountKM', 'lblKetQuaKM'], QtWidgets.QLabel)
 
-        self.promotion_manager = PromotionManager(self.tblDanhSachKM, txt_search, cb_status)
+        self.promotion_manager = PromotionManager(
+            self.tblDanhSachKM,
+            txt_search = txt_search,
+            cb_status  = cb_status,
+            dte_from   = dte_from   if not dte_from.isHidden()  else None,
+            dte_to     = dte_to     if not dte_to.isHidden()    else None,
+            lbl_count  = lbl_count  if not lbl_count.isHidden() else None,
+        )
 
         if hasattr(self, 'btnKhuyenMai'):
             self.btnKhuyenMai.clicked.connect(
                 lambda: self.change_page(self.pageKhuyenMai, self.promotion_manager.load_data)
             )
-        if hasattr(self, 'btnThemKhuyenMai'):
-            self.btnThemKhuyenMai.clicked.connect(self.promotion_manager.open_add)
+        # Nút Tìm kiếm KM
+        if hasattr(self, 'btnTimKiemKM'):
+            self.btnTimKiemKM.clicked.connect(self.promotion_manager.load_data)
+        # Hỗ trợ nhiều tên nút Thêm KM khác nhau trong các UI
+        for btn_name in ['btnTaoKM', 'btnThemKhuyenMai', 'btnThemKM', 'btnAddKM']:
+            if hasattr(self, btn_name):
+                getattr(self, btn_name).clicked.connect(self.promotion_manager.open_add)
+                break
 
     def setup_module_purchase(self):
-        """
-        Module Nhập Hàng.
-        Tìm bảng theo nhiều tên có thể có trong UI, gắn sự kiện nút.
-        Tên widget trong mainQLCH.ui:
-          tblDanhSachDonNhap hoặc tblNhapHang – QTableWidget 6 cột
-          pageNhapHang, btnNhapHang, btnThemDonNhap
-          txtTimNhapHang, cbTrangThaiNhapHang (tùy chọn)
-        """
-        # Tên bảng thực tế trong UI: tblDanhSachNhapHang
         if not hasattr(self, 'tblDanhSachNhapHang'): return
 
-        txt_search = self.get_widget(['txtTimNhapHang'],      QtWidgets.QLineEdit)
-        cb_status  = self.get_widget(['cbTrangThaiNhapHang'], QtWidgets.QComboBox)
-        self.purchase_manager = PurchaseManager(self.tblDanhSachNhapHang, txt_search, cb_status)
+        txt_search = self.get_widget(['txtTimKiemDonNhap', 'txtTimNhapHang'],          QtWidgets.QLineEdit)
+        cb_ncc     = self.get_widget(['cbLocNCC', 'cbNhaCungCapNH'],                   QtWidgets.QComboBox)
+        dte_from   = self.get_widget(['deLocNgay_2', 'dteFromNH'],                     QtWidgets.QDateEdit)
+        dte_to     = self.get_widget(['deLocNgayDen_2', 'dteToNH'],                    QtWidgets.QDateEdit)
+
+        self.purchase_manager = PurchaseManager(
+            self.tblDanhSachNhapHang,
+            txt_search = txt_search,
+            cb_ncc     = cb_ncc   if not cb_ncc.isHidden()   else None,
+            dte_from   = dte_from if not dte_from.isHidden() else None,
+            dte_to     = dte_to   if not dte_to.isHidden()   else None,
+        )
 
         if hasattr(self, 'btnNhapHang'):
             self.btnNhapHang.clicked.connect(
                 lambda: self.change_page(self.pageNhapHang, self.purchase_manager.load_data)
             )
-        if hasattr(self, 'btnThemDonNhap'):
-            self.btnThemDonNhap.clicked.connect(self.purchase_manager.open_add)
+        if hasattr(self, 'btnTimKiemDonNhap'):
+            self.btnTimKiemDonNhap.clicked.connect(self.purchase_manager.load_data)
+        for btn_name in ['btnThemDonNhapHang', 'btnThemDonNhap', 'btnTaoDonNhap']:
+            if hasattr(self, btn_name):
+                getattr(self, btn_name).clicked.connect(self.purchase_manager.open_add)
+                break
 
 
     def setup_module_supplier(self):
