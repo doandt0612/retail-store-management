@@ -192,6 +192,7 @@ class AddSupplier(QtWidgets.QDialog):
         self._setup_table()
         self._load_products_combo()
         self._fill_new_id()
+        self._inject_ten_ncc_add()
         self._connect_signals()
 
     # ---------- Cài đặt bảng ----------
@@ -243,6 +244,58 @@ class AddSupplier(QtWidgets.QDialog):
             self.txtOnlyReadMaNCC.setText(str(new_id))
         finally:
             conn.close()
+
+
+    def _inject_ten_ncc(self):
+        """Tạo QLineEdit txtTenNCC và chèn vào sau txtOnlyReadMaNCC (Mã NCC), trong khung Thông tin liên hệ."""
+        from PyQt6.QtWidgets import QFormLayout, QVBoxLayout, QHBoxLayout, QGridLayout
+
+        # Tìm widget Mã NCC — chèn TEN NCC ngay sau nó
+        ma_widget = getattr(self, "txtOnlyReadMaNCC", None)
+        sdt_widget = getattr(self, "txtSDT", None)
+        anchor = ma_widget or sdt_widget
+        if anchor is None:
+            return
+        parent = anchor.parent()
+        if parent is None:
+            return
+        layout = parent.layout()
+        if layout is None:
+            return
+
+        # Tạo label + input
+        lbl = QtWidgets.QLabel("Tên nhà cung cấp")
+        lbl.setStyleSheet("font-weight: bold; color: #374151;")
+        self.txtTenNCC = QtWidgets.QLineEdit()
+        self.txtTenNCC.setObjectName("txtTenNCC")
+        self.txtTenNCC.setPlaceholderText("Nhập tên nhà cung cấp...")
+
+        if isinstance(layout, QFormLayout):
+            # Tìm row chứa anchor widget rồi chèn SAU nó
+            insert_idx = 1  # mặc định chèn ở row 1
+            for i in range(layout.rowCount()):
+                item = layout.itemAt(i, QFormLayout.ItemRole.FieldRole)
+                if item and item.widget() == anchor:
+                    insert_idx = i + 1
+                    break
+            layout.insertRow(insert_idx, lbl, self.txtTenNCC)
+        else:
+            # Tìm index của anchor trong layout rồi chèn sau nó
+            insert_idx = 1
+            for i in range(layout.count()):
+                item = layout.itemAt(i)
+                if item and item.widget() == anchor:
+                    insert_idx = i + 1
+                    break
+            row_widget = QtWidgets.QWidget()
+            row_layout = QHBoxLayout(row_widget)
+            row_layout.setContentsMargins(0, 0, 0, 0)
+            row_layout.addWidget(lbl)
+            row_layout.addWidget(self.txtTenNCC)
+            layout.insertWidget(insert_idx, row_widget)
+
+    def _inject_ten_ncc_add(self):
+        self._inject_ten_ncc()
 
     # ---------- Kết nối tín hiệu ----------
     def _connect_signals(self):
@@ -317,10 +370,12 @@ class AddSupplier(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self, "Thiếu thông tin", "Vui lòng nhập Số điện thoại!")
             return
 
-        # Đọc tên NCC — UI không có txtTenNCC nên dùng SĐT làm định danh
-        # hoặc bạn có thể thêm 1 QLineEdit tên txtTenNCC vào UI sau
-        ten = getattr(self, "txtTenNCC", None)
-        ten = ten.text().strip() if ten else sdt   # fallback: dùng SĐT làm tên tạm
+        # Đọc tên NCC từ txtTenNCC đã được inject bằng code
+        ten_widget = getattr(self, "txtTenNCC", None)
+        ten = ten_widget.text().strip() if ten_widget else ""
+        if not ten:
+            QtWidgets.QMessageBox.warning(self, "Thiếu thông tin", "Vui lòng nhập Tên nhà cung cấp!")
+            return
 
         db   = DatabaseManager()
         conn = db.get_connection()
@@ -385,6 +440,7 @@ class EditSupplier(QtWidgets.QDialog):
 
         self._setup_table()
         self._load_products_combo()
+        self._inject_ten_ncc_edit()
         self._load_old_data()
         self._connect_signals()
 
@@ -423,10 +479,57 @@ class EditSupplier(QtWidgets.QDialog):
         pid = self.btnTenSP.currentData()
         self.txtReadOnlyMaSP.setText(str(pid) if pid else "")
 
+    def _inject_ten_ncc_edit(self):
+        """Tạo QLineEdit txtTenNCC và chèn vào sau txtOnlyReadMaNCC trong EditSupplier."""
+        from PyQt6.QtWidgets import QFormLayout, QVBoxLayout, QHBoxLayout, QGridLayout
+
+        ma_widget  = getattr(self, 'txtOnlyReadMaNCC', None)
+        sdt_widget = getattr(self, 'txtSDT', None)
+        anchor = ma_widget or sdt_widget
+        if anchor is None:
+            return
+        parent = anchor.parent()
+        if parent is None:
+            return
+        layout = parent.layout()
+        if layout is None:
+            return
+
+        lbl = QtWidgets.QLabel('Tên nhà cung cấp')
+        lbl.setStyleSheet('font-weight: bold; color: #374151;')
+        self.txtTenNCC = QtWidgets.QLineEdit()
+        self.txtTenNCC.setObjectName('txtTenNCC')
+        self.txtTenNCC.setPlaceholderText('Nhập tên nhà cung cấp...')
+
+        if isinstance(layout, QFormLayout):
+            insert_idx = 1
+            for i in range(layout.rowCount()):
+                item = layout.itemAt(i, QFormLayout.ItemRole.FieldRole)
+                if item and item.widget() == anchor:
+                    insert_idx = i + 1
+                    break
+            layout.insertRow(insert_idx, lbl, self.txtTenNCC)
+        else:
+            insert_idx = 1
+            for i in range(layout.count()):
+                item = layout.itemAt(i)
+                if item and item.widget() == anchor:
+                    insert_idx = i + 1
+                    break
+            row_widget = QtWidgets.QWidget()
+            row_layout = QHBoxLayout(row_widget)
+            row_layout.setContentsMargins(0, 0, 0, 0)
+            row_layout.addWidget(lbl)
+            row_layout.addWidget(self.txtTenNCC)
+            layout.insertWidget(insert_idx, row_widget)
+
     # ---------- Load dữ liệu cũ ----------
     def _load_old_data(self):
         d = self.data
         self.txtOnlyReadMaNCC.setText(str(d["id"]))
+        # Load tên NCC vào ô vừa inject
+        if hasattr(self, "txtTenNCC"):
+            self.txtTenNCC.setText(d.get("ten", ""))
         self.txtSDT.setText(d.get("sdt", ""))
         self.txtEmail.setText(d.get("email", ""))
         self.txtDiaChi.setText(d.get("dia_chi", ""))
@@ -549,12 +652,19 @@ class EditSupplier(QtWidgets.QDialog):
                 QtWidgets.QMessageBox.warning(self, "Từ chối", "Số điện thoại này đã được sử dụng!")
                 return
 
+            # Đọc tên NCC
+            ten_widget = getattr(self, "txtTenNCC", None)
+            ten = ten_widget.text().strip() if ten_widget else self.data.get("ten", "")
+            if not ten:
+                QtWidgets.QMessageBox.warning(self, "Thiếu thông tin", "Vui lòng nhập Tên nhà cung cấp!")
+                return
+
             # Cập nhật thông tin NCC
             cursor.execute("""
                 UPDATE Suppliers
-                SET SupplierPhone = ?, SupplierEmail = ?, SupplierAddress = ?
+                SET SupplierName = ?, SupplierPhone = ?, SupplierEmail = ?, SupplierAddress = ?
                 WHERE SupplierID = ?
-            """, (sdt, email, dia_chi, sup_id))
+            """, (ten, sdt, email, dia_chi, sup_id))
 
             # Products không có cột SupplierID — liên kết NCC-SP qua Purchase_Orders
             # Không cần cập nhật Products khi sửa thông tin NCC

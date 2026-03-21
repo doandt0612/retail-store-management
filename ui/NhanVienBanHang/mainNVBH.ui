@@ -282,7 +282,7 @@ QWidget {
 }</string>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>4</number>
          </property>
          <widget class="QWidget" name="pageDonHang">
           <property name="styleSheet">
@@ -472,20 +472,38 @@ QDateEdit::drop-down {
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="deLocNgay"/>
+               <widget class="QLabel" name="lblTuNgayDH">
+                <property name="text">
+                 <string>Từ:</string>
+                </property>
+               </widget>
               </item>
               <item>
-               <spacer name="horizontalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
+               <widget class="QDateEdit" name="deLocNgayTu">
+                <property name="displayFormat">
+                 <string>dd/MM/yyyy</string>
                 </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>140</width>
-                  <height>13</height>
-                 </size>
+                <property name="calendarPopup">
+                 <bool>true</bool>
                 </property>
-               </spacer>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="lblDenNgayDH">
+                <property name="text">
+                 <string>Đến:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDateEdit" name="deLocNgayDen">
+                <property name="displayFormat">
+                 <string>dd/MM/yyyy</string>
+                </property>
+                <property name="calendarPopup">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QPushButton" name="btnTimKiemDonHang">
@@ -1553,7 +1571,7 @@ QDateEdit::drop-down {
      <x>0</x>
      <y>0</y>
      <width>922</width>
-     <height>26</height>
+     <height>18</height>
     </rect>
    </property>
   </widget>
