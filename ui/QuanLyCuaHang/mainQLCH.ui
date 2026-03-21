@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>922</width>
+    <width>933</width>
     <height>600</height>
    </rect>
   </property>
@@ -281,9 +281,9 @@ QLabel#lblTenDeTai {
            <widget class="QLabel" name="lblTenDeTai">
             <property name="styleSheet">
              <string notr="true">QLabel#lblTenDeTai {
-    font-size: 18px;       /* Tăng kích thước chữ */
-    font-weight: semi-bold;     /* In đậm */
-    color: #111827;        /* Màu đen tuyền nổi bật */
+    font-size: 27px;       /* Tăng kích thước chữ */
+    font-weight: bold;     /* In đậm */
+    color: #1e3a8a;        /* Màu đen tuyền nổi bật */
     padding-bottom: 5px;
 }</string>
             </property>
@@ -2572,8 +2572,8 @@ QPushButton#btnTimKiemNV:hover {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>922</width>
-     <height>18</height>
+     <width>933</width>
+     <height>26</height>
     </rect>
    </property>
   </widget>
