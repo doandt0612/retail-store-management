@@ -27,8 +27,71 @@ Widget quan trọng trong từng UI:
 
 import os
 from PyQt6 import uic, QtWidgets
-from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtCore import Qt, QDate, QDateTime, QTimer
 from src.database.db_connection import DatabaseManager
+
+def _get_promotion_forms(conn):
+    """Lấy giá trị hợp lệ của PromotionForm từ CHECK constraint."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT cc.definition
+            FROM   sys.check_constraints cc
+            JOIN   sys.columns col ON cc.parent_object_id = col.object_id
+                                  AND cc.parent_column_id = col.column_id
+            JOIN   sys.tables t   ON cc.parent_object_id = t.object_id
+            WHERE  t.name = 'Promotions' AND col.name = 'PromotionForm'
+        """)
+        row = cursor.fetchone()
+        if row:
+            import re as _re
+            vals = _re.findall(r"'([^']+)'", row[0])
+            if vals:
+                return vals
+    except Exception as e:
+        print(f"[WARN] Không đọc CHECK PromotionForm: {e}")
+    # Lấy từ dữ liệu thực
+    try:
+        cursor.execute(
+            "SELECT DISTINCT PromotionForm FROM Promotions WHERE PromotionForm IS NOT NULL"
+        )
+        vals = [r[0] for r in cursor.fetchall()]
+        if vals:
+            return vals
+    except Exception:
+        pass
+    return []
+
+
+
+def _parse_discount(text, original_price=0.0):
+    """
+    Parse giá trị giảm từ text:
+    - "50%"    → tính 50% của giá gốc
+    - "50000"  → số tiền cố định 50000
+    - "50,000" → 50000
+    Trả về (discount_amount, is_percent, percent_value)
+    """
+    text = text.strip().replace(",", "").replace(" ", "")
+    if text.endswith("%"):
+        try:
+            pct = float(text[:-1])
+            if pct < 0 or pct > 100:
+                raise ValueError("Phần trăm phải từ 0 đến 100!")
+            amount = original_price * pct / 100
+            return amount, True, pct
+        except ValueError as e:
+            raise ValueError(str(e))
+    else:
+        try:
+            amount = float(text)
+            if amount < 0:
+                raise ValueError("Giá trị giảm phải là số không âm!")
+            return amount, False, 0.0
+        except ValueError:
+            raise ValueError("Giá trị giảm không hợp lệ! Nhập số tiền (vd: 50000) hoặc phần trăm (vd: 50%)")
+
+
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR    = os.path.dirname(os.path.dirname(CURRENT_DIR))
@@ -205,19 +268,21 @@ class AddPromotion(QtWidgets.QDialog):
         pid   = self.cbSP.currentData()
         pname = self.cbSP.currentText().split("] ", 1)[-1]
 
-        disc_text = self.txtGiaTriGiam.text().strip().replace(",", "")
+        disc_text = self.txtGiaTriGiam.text().strip()
         if not disc_text:
             QtWidgets.QMessageBox.warning(
                 self, "Thiếu thông tin",
-                "Vui lòng nhập Giá trị giảm trước khi thêm sản phẩm!"
+                "Vui lòng nhập Giá trị giảm trước khi thêm sản phẩm!\n"
+                "Ví dụ: 50000 (số tiền) hoặc 50% (phần trăm)"
             )
             return
+
+        original = self._price_map.get(pid, 0.0)
+
         try:
-            discount = float(disc_text)
-            if discount < 0:
-                raise ValueError
-        except ValueError:
-            QtWidgets.QMessageBox.warning(self, "Lỗi", "Giá trị giảm phải là số không âm!")
+            discount, is_pct, pct_val = _parse_discount(disc_text, original)
+        except ValueError as e:
+            QtWidgets.QMessageBox.warning(self, "Lỗi", str(e))
             return
 
         for rd in self._product_rows:
@@ -225,8 +290,9 @@ class AddPromotion(QtWidgets.QDialog):
                 QtWidgets.QMessageBox.warning(self, "Trùng", "Sản phẩm này đã có trong danh sách!")
                 return
 
-        original = self._price_map.get(pid, 0.0)
-        after    = max(0.0, original - discount)
+        after = max(0.0, original - discount)
+        # Lưu thêm is_pct và pct_val để hiển thị đẹp hơn
+        _ = is_pct  # tránh unused warning
         row_data = {"pid": pid, "pname": pname,
                     "original": original, "discount": discount, "after": after}
         self._product_rows.append(row_data)
@@ -295,11 +361,31 @@ class AddPromotion(QtWidgets.QDialog):
             cursor.execute("SELECT ISNULL(MAX(PromotionID), 0) FROM Promotions")
             new_id = cursor.fetchone()[0] + 1
 
-            cursor.execute("""
-                INSERT INTO Promotions
-                    (PromotionID, PromotionName, PromotionForm, StartDate, EndDate, Status)
-                VALUES (?, ?, N'Giảm giá trực tiếp', ?, ?, ?)
-            """, (new_id, ten, start, end, status))
+            # Chọn PromotionForm đúng theo loại giảm
+            # DB có: 'Giá trị' (số tiền cố định) và 'Giảm theo %' (phần trăm)
+            forms = _get_promotion_forms(conn)
+            # Kiểm tra người dùng nhập % hay số tiền
+            disc_input = self.txtGiaTriGiam.text().strip()
+            is_percent = disc_input.endswith("%")
+            if is_percent:
+                # Tìm form chứa '%'
+                promo_form = next((f for f in forms if "%" in f), forms[0] if forms else "Giảm theo %")
+            else:
+                # Tìm form chứa 'giá trị' hoặc form đầu tiên
+                promo_form = next((f for f in forms if "%" not in f), forms[0] if forms else "Giá trị")
+
+            if forms:
+                cursor.execute("""
+                    INSERT INTO Promotions
+                        (PromotionID, PromotionName, PromotionForm, StartDate, EndDate, Status)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (new_id, ten, promo_form, start, end, status))
+            else:
+                cursor.execute("""
+                    INSERT INTO Promotions
+                        (PromotionID, PromotionName, StartDate, EndDate, Status)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (new_id, ten, start, end, status))
 
             for rd in self._product_rows:
                 cursor.execute("""
@@ -431,19 +517,21 @@ class EditPromotion(QtWidgets.QDialog):
         pid   = self.cbSP.currentData()
         pname = self.cbSP.currentText().split("] ", 1)[-1]
 
-        disc_text = self.txtGiaTriGiam.text().strip().replace(",", "")
+        disc_text = self.txtGiaTriGiam.text().strip()
         if not disc_text:
             QtWidgets.QMessageBox.warning(
                 self, "Thiếu thông tin",
-                "Vui lòng nhập Giá trị giảm trước khi thêm sản phẩm!"
+                "Vui lòng nhập Giá trị giảm trước khi thêm sản phẩm!\n"
+                "Ví dụ: 50000 (số tiền) hoặc 50% (phần trăm)"
             )
             return
+
+        original = self._price_map.get(pid, 0.0)
+
         try:
-            discount = float(disc_text)
-            if discount < 0:
-                raise ValueError
-        except ValueError:
-            QtWidgets.QMessageBox.warning(self, "Lỗi", "Giá trị giảm phải là số không âm!")
+            discount, is_pct, pct_val = _parse_discount(disc_text, original)
+        except ValueError as e:
+            QtWidgets.QMessageBox.warning(self, "Lỗi", str(e))
             return
 
         for rd in self._product_rows:
@@ -451,8 +539,7 @@ class EditPromotion(QtWidgets.QDialog):
                 QtWidgets.QMessageBox.warning(self, "Trùng", "Sản phẩm này đã có trong danh sách!")
                 return
 
-        original = self._price_map.get(pid, 0.0)
-        after    = max(0.0, original - discount)
+        after = max(0.0, original - discount)
         row_data = {"pid": pid, "pname": pname,
                     "original": original, "discount": discount, "after": after}
         self._product_rows.append(row_data)
@@ -603,25 +690,24 @@ class PromotionManager:
     Controller cho trang Khuyến Mãi.
 
     Khai báo trong main.py → setup_module_promotion():
-        if not hasattr(self, 'tblDanhSachKM'): return
         txt_search = self.get_widget(['txtTimKhuyenMai'], QtWidgets.QLineEdit)
         cb_status  = self.get_widget(['cbTrangThaiKM'],   QtWidgets.QComboBox)
-        self.promotion_manager = PromotionManager(self.tblDanhSachKM, txt_search, cb_status)
-        if hasattr(self, 'btnKhuyenMai'):
-            self.btnKhuyenMai.clicked.connect(
-                lambda: self.change_page(self.pageKhuyenMai, self.promotion_manager.load_data)
-            )
-        if hasattr(self, 'btnThemKhuyenMai'):
-            self.btnThemKhuyenMai.clicked.connect(self.promotion_manager.open_add)
-
-    Bảng tblDanhSachKM cần có 6 cột trong UI:
-        Mã KM | Tên CT | Ngày bắt đầu | Ngày kết thúc | Trạng thái | Thao tác
+        dte_from   = self.get_widget(['dteNgayBatDauKM', 'dteFromKM', 'dteLocTuNgay'], QtWidgets.QDateTimeEdit)
+        dte_to     = self.get_widget(['dteNgayKetThucKM', 'dteToKM',  'dteLocDenNgay'], QtWidgets.QDateTimeEdit)
+        lbl_count  = self.get_widget(['lblSoLuongKM', 'lblCountKM'], QtWidgets.QLabel)
+        self.promotion_manager = PromotionManager(
+            self.tblDanhSachKM, txt_search, cb_status, dte_from, dte_to, lbl_count
+        )
     """
 
-    def __init__(self, table_widget, txt_search=None, cb_status=None):
+    def __init__(self, table_widget, txt_search=None, cb_status=None,
+                 dte_from=None, dte_to=None, lbl_count=None):
         self.table      = table_widget
         self.txt_search = txt_search
         self.cb_status  = cb_status
+        self.dte_from   = dte_from    # QDateTimeEdit — từ ngày
+        self.dte_to     = dte_to      # QDateTimeEdit — đến ngày
+        self.lbl_count  = lbl_count   # QLabel hiển thị số KM tìm được
         self._init_ui()
         self._init_filters()
 
@@ -638,8 +724,15 @@ class PromotionManager:
         tbl.setColumnWidth(last, 200)
 
     def _init_filters(self):
+        # Tìm kiếm realtime với debounce 300ms
         if self.txt_search:
-            self.txt_search.returnPressed.connect(self.load_data)
+            self._search_timer = QTimer()
+            self._search_timer.setSingleShot(True)
+            self._search_timer.setInterval(300)
+            self._search_timer.timeout.connect(self.load_data)
+            self.txt_search.textChanged.connect(self._search_timer.start)
+
+        # ComboBox trạng thái
         if self.cb_status:
             self.cb_status.blockSignals(True)
             self.cb_status.clear()
@@ -648,6 +741,19 @@ class PromotionManager:
                 self.cb_status.addItem(s, s)
             self.cb_status.blockSignals(False)
             self.cb_status.currentIndexChanged.connect(self.load_data)
+
+        # DateTimeEdit lọc khoảng thời gian
+        if self.dte_from and not self.dte_from.isHidden():
+            self.dte_from.setCalendarPopup(True)
+            # Mặc định: từ đầu năm hiện tại
+            self.dte_from.setDate(QDate(QDate.currentDate().year(), 1, 1))
+            self.dte_from.dateChanged.connect(self.load_data)
+
+        if self.dte_to and not self.dte_to.isHidden():
+            self.dte_to.setCalendarPopup(True)
+            # Mặc định: đến cuối năm hiện tại
+            self.dte_to.setDate(QDate(QDate.currentDate().year(), 12, 31))
+            self.dte_to.dateChanged.connect(self.load_data)
 
     def load_data(self):
         db   = DatabaseManager()
@@ -661,15 +767,33 @@ class PromotionManager:
         """
         params = []
 
+        # Lọc theo tên
         kw = self.txt_search.text().strip() if self.txt_search else ""
         if kw:
             query += " AND PromotionName LIKE ?"
             params.append(f"%{kw}%")
 
+        # Lọc theo trạng thái
         status_val = self.cb_status.currentData() if self.cb_status else ""
         if status_val:
             query += " AND Status = ?"
             params.append(status_val)
+
+        # Lọc theo khoảng thời gian
+        # Điều kiện: KM có giao với khoảng [from, to]
+        # tức là StartDate <= to AND EndDate >= from
+        use_date_filter = False
+        if self.dte_from and not self.dte_from.isHidden():
+            date_from = self.dte_from.date().toPyDate()
+            query += " AND EndDate >= ?"
+            params.append(date_from)
+            use_date_filter = True
+
+        if self.dte_to and not self.dte_to.isHidden():
+            date_to = self.dte_to.date().toPyDate()
+            query += " AND StartDate <= ?"
+            params.append(date_to)
+            use_date_filter = True
 
         query += " ORDER BY StartDate DESC"
 
@@ -707,6 +831,23 @@ class PromotionManager:
                     "status":     row[4],
                 }
                 self._add_action_buttons(i, promo_data)
+
+            # Cập nhật nhãn đếm số KM tìm được
+            count = len(rows)
+            if self.lbl_count and not self.lbl_count.isHidden():
+                if use_date_filter:
+                    d_from = self.dte_from.date().toString("dd/MM/yyyy") if self.dte_from else ""
+                    d_to   = self.dte_to.date().toString("dd/MM/yyyy")   if self.dte_to   else ""
+                    self.lbl_count.setText(
+                        f"Tìm thấy {count} chương trình"
+                        + (f" từ {d_from} đến {d_to}" if d_from and d_to else "")
+                    )
+                else:
+                    self.lbl_count.setText(f"Tổng: {count} chương trình khuyến mãi")
+            else:
+                # Hiển thị ngay trên title bar bảng nếu không có label
+                self.table.setWindowTitle(f"Khuyến mãi ({count})")
+
         except Exception as e:
             print(f"Lỗi load Khuyến mãi: {e}")
         finally:
@@ -718,7 +859,6 @@ class PromotionManager:
         h = QtWidgets.QHBoxLayout(container)
         h.setContentsMargins(4, 2, 4, 2)
         h.setSpacing(4)
-
         style    = "padding:5px;font-weight:bold;border-radius:4px;color:white;border:none;"
         btn_view = QtWidgets.QPushButton("Xem")
         btn_edit = QtWidgets.QPushButton("Sửa")
@@ -726,11 +866,9 @@ class PromotionManager:
         btn_view.setStyleSheet(f"background-color:#10b981;{style}")
         btn_edit.setStyleSheet(f"background-color:#3b82f6;{style}")
         btn_del.setStyleSheet(f"background-color:#ef4444;{style}")
-
         btn_view.clicked.connect(lambda _, d=promo_data: self.open_view(d))
         btn_edit.clicked.connect(lambda _, d=promo_data: self.open_edit(d))
         btn_del.clicked.connect(lambda _, d=promo_data:  self.open_delete(d))
-
         h.addWidget(btn_view)
         h.addWidget(btn_edit)
         h.addWidget(btn_del)

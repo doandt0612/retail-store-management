@@ -35,7 +35,7 @@ Lưu ý schema DB:
 
 import os
 from PyQt6 import uic, QtWidgets
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from src.database.db_connection import DatabaseManager
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -556,7 +556,12 @@ class ProductManager:
     # ---------- Bộ lọc ----------
     def _init_filters(self):
         if self.txt_search:
-            self.txt_search.returnPressed.connect(self.load_data)
+            # Tìm kiếm realtime với debounce 300ms
+            self._search_timer = QTimer()
+            self._search_timer.setSingleShot(True)
+            self._search_timer.setInterval(300)
+            self._search_timer.timeout.connect(self.load_data)
+            self.txt_search.textChanged.connect(self._search_timer.start)
 
         db   = DatabaseManager()
         conn = db.get_connection()

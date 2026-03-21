@@ -1212,9 +1212,6 @@ QDateEdit::drop-down {
                <widget class="QDateEdit" name="deLocNgay_2"/>
               </item>
               <item>
-               <widget class="QComboBox" name="cbLocNCC"/>
-              </item>
-              <item>
                <spacer name="horizontalSpacer_14">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>

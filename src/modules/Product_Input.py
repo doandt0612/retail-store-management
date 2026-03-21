@@ -29,8 +29,42 @@ Widget quan trọng:
 
 import os
 from PyQt6 import uic, QtWidgets
-from PyQt6.QtCore import Qt, QDateTime
+from PyQt6.QtCore import Qt, QDateTime, QTimer, QDate
 from src.database.db_connection import DatabaseManager
+
+def _get_purchase_status_values(cursor):
+    """Lấy giá trị hợp lệ từ CHECK constraint hoặc dữ liệu thực của Purchase_Orders.Status."""
+    try:
+        cursor.execute("""
+            SELECT cc.definition
+            FROM   sys.check_constraints cc
+            JOIN   sys.columns col ON cc.parent_object_id = col.object_id
+                                  AND cc.parent_column_id = col.column_id
+            JOIN   sys.tables t   ON cc.parent_object_id = t.object_id
+            WHERE  t.name = 'Purchase_Orders' AND col.name = 'Status'
+        """)
+        row = cursor.fetchone()
+        if row:
+            import re as _re
+            vals = _re.findall(r"'([^']+)'", row[0])
+            if vals:
+                print(f"[INFO] Purchase_Orders.Status CHECK: {vals}")
+                return vals
+    except Exception as e:
+        print(f"[WARN] Không đọc CHECK constraint: {e}")
+    try:
+        cursor.execute(
+            "SELECT DISTINCT Status FROM Purchase_Orders WHERE Status IS NOT NULL ORDER BY Status"
+        )
+        vals = [r[0] for r in cursor.fetchall()]
+        if vals:
+            print(f"[INFO] Purchase_Orders.Status distinct: {vals}")
+            return vals
+    except Exception:
+        pass
+    return ["Chưa nhận hàng", "Đã nhận hàng", "Đã hủy"]
+
+
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR    = os.path.dirname(os.path.dirname(CURRENT_DIR))
@@ -93,7 +127,13 @@ class ViewPurchaseOrder(QtWidgets.QDialog):
                 )
                 self.lblHienThiTongTien.setText(f"{row[3]:,.0f} VNĐ")
                 self.lblHienThiTrangThai.setText(row[4])
-                color = {"Đã nhận": "#15803d", "Chờ nhận": "#b45309", "Đã hủy": "#dc2626"}
+                # Màu theo nội dung status
+                def _status_color(s):
+                    s = s.lower()
+                    if "nhận" in s and "chưa" not in s and "chờ" not in s: return "#15803d"
+                    if "hủy" in s: return "#dc2626"
+                    return "#b45309"
+                color = {st: _status_color(st) for st in [self._po_data.get("status","")]}
                 self.lblHienThiTrangThai.setStyleSheet(
                     f"font-weight:bold;color:{color.get(row[4], '#111827')};"
                 )
@@ -179,7 +219,7 @@ class AddPurchaseOrder(QtWidgets.QDialog):
                 self.cbNCC.addItem(sname, sid)
 
             self.cbTrangThai.clear()
-            self.cbTrangThai.addItems(["Chờ nhận", "Đã nhận", "Đã hủy"])
+            self.cbTrangThai.addItems(_get_purchase_status_values(cursor))
         finally:
             conn.close()
 
@@ -285,7 +325,7 @@ class AddPurchaseOrder(QtWidgets.QDialog):
                         (PurchaseOrderID, ProductID, PurchasedQuantity, UnitCost, SubTotal)
                     VALUES (?, ?, ?, ?, ?)
                 """, (new_id, rd["pid"], rd["qty"], rd["price"], rd["qty"] * rd["price"]))
-                if status == "Đã nhận":
+                if "nhận" in status.lower() and "chưa" not in status.lower() and "chờ" not in status.lower():
                     cursor.execute("""
                         UPDATE Products SET UnitsInStock = UnitsInStock + ?, Status = N'Còn hàng'
                         WHERE ProductID = ?
@@ -336,7 +376,7 @@ class EditPurchaseOrder(QtWidgets.QDialog):
                 self.cbNCC.addItem(sname, sid)
 
             self.cbTrangThai.clear()
-            self.cbTrangThai.addItems(["Chờ nhận", "Đã nhận", "Đã hủy"])
+            self.cbTrangThai.addItems(_get_purchase_status_values(cursor))
         finally:
             conn.close()
 
@@ -474,7 +514,8 @@ class EditPurchaseOrder(QtWidgets.QDialog):
                 """, (po_id, rd["pid"], rd["qty"], rd["price"], rd["qty"] * rd["price"]))
 
             # Cộng tồn kho nếu vừa đổi sang "Đã nhận"
-            if new_status == "Đã nhận" and self._old_status != "Đã nhận":
+            received = lambda s: "nhận" in s.lower() and "chưa" not in s.lower() and "chờ" not in s.lower()
+            if received(new_status) and not received(self._old_status):
                 for rd in self._product_rows:
                     cursor.execute("""
                         UPDATE Products SET UnitsInStock=UnitsInStock+?, Status=N'Còn hàng'
@@ -503,7 +544,8 @@ class DeletePurchaseOrder(QtWidgets.QDialog):
         self.btnHuy.clicked.connect(self.reject)
 
     def _on_xoa(self):
-        if self.po_data.get("status") == "Đã nhận":
+        st = self.po_data.get("status", "")
+        if "nhận" in st.lower() and "chưa" not in st.lower() and "chờ" not in st.lower():
             QtWidgets.QMessageBox.warning(
                 self, "Từ chối",
                 "Không thể xóa đơn nhập đã nhận hàng!\n"
@@ -552,10 +594,14 @@ class PurchaseManager:
         Mã đơn | Ngày nhập | Nhà cung cấp | Tổng tiền | Trạng thái | Thao tác
     """
 
-    def __init__(self, table_widget, txt_search=None, cb_status=None):
+    def __init__(self, table_widget, txt_search=None, cb_ncc=None,
+                 dte_from=None, dte_to=None):
         self.table      = table_widget
         self.txt_search = txt_search
-        self.cb_status  = cb_status
+        self.cb_ncc     = cb_ncc     # QComboBox lọc theo NCC
+        self.cb_status  = None       # không dùng cb_status nữa
+        self.dte_from   = dte_from
+        self.dte_to     = dte_to
         self._init_ui()
         self._init_filters()
 
@@ -573,15 +619,39 @@ class PurchaseManager:
 
     def _init_filters(self):
         if self.txt_search:
-            self.txt_search.returnPressed.connect(self.load_data)
-        if self.cb_status:
-            self.cb_status.blockSignals(True)
-            self.cb_status.clear()
-            self.cb_status.addItem("Tất cả trạng thái", "")
-            for s in ["Chờ nhận", "Đã nhận", "Đã hủy"]:
-                self.cb_status.addItem(s, s)
-            self.cb_status.blockSignals(False)
-            self.cb_status.currentIndexChanged.connect(self.load_data)
+            self._search_timer = QTimer()
+            self._search_timer.setSingleShot(True)
+            self._search_timer.setInterval(300)
+            self._search_timer.timeout.connect(self.load_data)
+            self.txt_search.textChanged.connect(self._search_timer.start)
+        # Kết nối DateTimeEdit lọc khoảng thời gian
+        if self.dte_from:
+            self.dte_from.setCalendarPopup(True)
+            self.dte_from.setDisplayFormat('dd/MM/yyyy')
+            self.dte_from.setDate(QDate(QDate.currentDate().year(), 1, 1))
+            self.dte_from.dateChanged.connect(self.load_data)
+        if self.dte_to:
+            self.dte_to.setCalendarPopup(True)
+            self.dte_to.setDisplayFormat('dd/MM/yyyy')
+            self.dte_to.setDate(QDate.currentDate())
+            self.dte_to.dateChanged.connect(self.load_data)
+        # Populate cbLocNCC với danh sách nhà cung cấp
+        if self.cb_ncc:
+            db2   = DatabaseManager()
+            conn2 = db2.get_connection()
+            if conn2:
+                try:
+                    self.cb_ncc.blockSignals(True)
+                    self.cb_ncc.clear()
+                    self.cb_ncc.addItem("Tất cả NCC", 0)
+                    cur2 = conn2.cursor()
+                    cur2.execute("SELECT SupplierID, SupplierName FROM Suppliers ORDER BY SupplierName")
+                    for sid, sname in cur2.fetchall():
+                        self.cb_ncc.addItem(sname, sid)
+                    self.cb_ncc.blockSignals(False)
+                    self.cb_ncc.currentIndexChanged.connect(self.load_data)
+                finally:
+                    conn2.close()
 
     def load_data(self):
         db   = DatabaseManager()
@@ -602,18 +672,30 @@ class PurchaseManager:
             query += " AND (s.SupplierName LIKE ? OR CAST(po.PurchaseOrderID AS VARCHAR) LIKE ?)"
             params.extend([f"%{kw}%", f"%{kw}%"])
 
-        sv = self.cb_status.currentData() if self.cb_status else ""
-        if sv:
-            query += " AND po.Status = ?"
-            params.append(sv)
+        # Lọc theo NCC
+        ncc_val = self.cb_ncc.currentData() if self.cb_ncc else 0
+        if ncc_val:
+            query += " AND po.SupplierID = ?"
+            params.append(ncc_val)
+
+        # Lọc theo khoảng thời gian
+        if self.dte_from:
+            date_from = self.dte_from.date().toPyDate()
+            query += " AND CAST(po.PurchasedDate AS DATE) >= ?"
+            params.append(date_from)
+        if self.dte_to:
+            date_to = self.dte_to.date().toPyDate()
+            query += " AND CAST(po.PurchasedDate AS DATE) <= ?"
+            params.append(date_to)
 
         query += " ORDER BY po.PurchasedDate DESC"
 
-        _CLR = {
-            "Đã nhận":  Qt.GlobalColor.darkGreen,
-            "Chờ nhận": Qt.GlobalColor.darkYellow,
-            "Đã hủy":   Qt.GlobalColor.darkRed,
-        }
+        def _clr(s):
+            s = s.lower()
+            if "nhận" in s and "chưa" not in s and "chờ" not in s:
+                return Qt.GlobalColor.darkGreen
+            if "hủy" in s: return Qt.GlobalColor.darkRed
+            return Qt.GlobalColor.darkYellow
 
         try:
             cursor = conn.cursor()
@@ -629,7 +711,7 @@ class PurchaseManager:
                 self.table.setItem(i, 3, QtWidgets.QTableWidgetItem(f"{row[3]:,.0f} VNĐ"))
 
                 si = QtWidgets.QTableWidgetItem(row[4])
-                si.setForeground(_CLR.get(row[4], Qt.GlobalColor.black))
+                si.setForeground(_clr(row[4]))
                 self.table.setItem(i, 4, si)
 
                 po_data = {
